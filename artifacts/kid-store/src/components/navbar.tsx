@@ -25,17 +25,6 @@ export function Navbar() {
         </div>
 
         <div className={`flex items-center gap-2 md:gap-3 ${isRtl ? 'mr-auto' : 'ml-auto'}`}>
-          <div className="flex items-center gap-1">
-            <Link
-              href="/"
-              className="font-display text-sm font-semibold px-4 py-2 rounded-full bg-[#FEC00B]/10 hover:bg-[#FEC00B]/25 text-foreground transition-colors"
-              data-testid="link-catalog"
-            >
-              {t("nav.catalog")}
-            </Link>
-          </div>
-
-          <div className="h-6 w-px bg-border mx-1" />
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
