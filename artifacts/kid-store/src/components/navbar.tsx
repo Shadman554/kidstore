@@ -10,16 +10,18 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useTheme } from "next-themes";
 import WawLogo from "@assets/WAW_logo_1781717964078.svg";
+import { useSecretTap } from "@/hooks/use-secret-tap";
 
 export function Navbar() {
   const { lang, setLang, t, isRtl } = useI18n();
   const { theme, setTheme } = useTheme();
+  const handleSecretTap = useSecretTap();
 
   return (
     <nav className="hidden md:block sticky top-0 z-50 w-full bg-white dark:bg-card border-b-4 border-[#FEC00B] shadow-md">
       <div className="container mx-auto flex h-18 items-center px-4 md:px-6 py-2">
         <div className={`flex items-center ${isRtl ? 'ml-auto' : 'mr-auto'}`}>
-          <Link href="/" className="flex items-center hover:opacity-90 transition-opacity" data-testid="link-home">
+          <Link href="/" className="flex items-center hover:opacity-90 transition-opacity" data-testid="link-home" onClick={handleSecretTap}>
             <img src={WawLogo} alt="WAW" className="h-10 w-auto" />
           </Link>
         </div>

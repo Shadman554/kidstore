@@ -10,14 +10,16 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import WawLogo from "@assets/WAW_logo_1781717964078.svg";
+import { useSecretTap } from "@/hooks/use-secret-tap";
 
 export function MobileHeader() {
   const { lang, setLang } = useI18n();
   const { theme, setTheme } = useTheme();
+  const handleSecretTap = useSecretTap();
 
   return (
     <header className="md:hidden sticky top-0 z-50 bg-white dark:bg-card border-b-4 border-[#FEC00B] flex items-center justify-between px-4 h-14">
-      <Link href="/" data-testid="mobile-link-home">
+      <Link href="/" data-testid="mobile-link-home" onClick={handleSecretTap}>
         <img src={WawLogo} alt="WAW" className="h-8 w-auto" />
       </Link>
 
