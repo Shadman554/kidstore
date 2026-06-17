@@ -106,7 +106,6 @@ export function ProductCard({ product, index }: ProductCardProps) {
           </h3>
           <div className="mt-auto pt-2 flex items-end justify-between gap-2">
             <div>
-              <div className="text-xs text-muted-foreground font-semibold uppercase tracking-wide">{t("product.singlePrice")}</div>
               <div
                 className="text-2xl font-display font-bold"
                 style={{ color: color.bg === "#FEC00B" ? "#c49200" : color.bg }}
@@ -116,7 +115,6 @@ export function ProductCard({ product, index }: ProductCardProps) {
             </div>
             {product.bulkMinQty && (
               <div className="text-right">
-                <div className="text-xs text-muted-foreground font-semibold uppercase tracking-wide">{t("product.bulkPrice")}</div>
                 <div className="text-sm font-bold text-muted-foreground">${product.priceBulk.toFixed(2)}</div>
               </div>
             )}
