@@ -141,9 +141,9 @@ export default function Catalog() {
       {/* ── DESKTOP LAYOUT ── unchanged */}
       <div className="hidden md:block">
         <div className="relative overflow-hidden bg-white dark:bg-card border-b-2 border-border">
-          <div className="absolute top-0 left-0 w-2 h-full bg-[#EE4C9F]" />
-          <div className="absolute top-0 left-2 w-2 h-full bg-[#01BCF3]" />
-          <div className="absolute top-0 left-4 w-2 h-full bg-[#FEC00B]" />
+          <div className={`absolute top-0 w-2 h-full bg-[#EE4C9F] ${isRtl ? 'right-0' : 'left-0'}`} />
+          <div className={`absolute top-0 w-2 h-full bg-[#01BCF3] ${isRtl ? 'right-2' : 'left-2'}`} />
+          <div className={`absolute top-0 w-2 h-full bg-[#FEC00B] ${isRtl ? 'right-4' : 'left-4'}`} />
           <div className="container mx-auto px-6 py-8 md:py-10 ps-10">
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
               <div>
