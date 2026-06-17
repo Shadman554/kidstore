@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { Link } from "wouter";
-import { Product } from "@/lib/store";
+import { Product, formatPrice } from "@/lib/store";
 import { useI18n } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, ArrowLeft } from "lucide-react";
@@ -58,7 +58,7 @@ export function ProductCard({ product, index }: ProductCardProps) {
             className="absolute top-3 right-3 rtl:left-3 rtl:right-auto px-2.5 py-1 rounded-full text-xs font-display font-bold shadow-lg"
             style={{ background: color.bg, color: color.text }}
           >
-            ${product.priceSingle.toFixed(2)}
+            {formatPrice(product.priceSingle, product.currency ?? "USD")}
           </div>
 
           {/* Info at bottom */}
@@ -68,7 +68,7 @@ export function ProductCard({ product, index }: ProductCardProps) {
             </p>
             {product.bulkMinQty && (
               <p className="text-white/70 text-[10px] font-semibold mt-0.5">
-                {t("product.bulkPrice")}: ${product.priceBulk.toFixed(2)}
+                {t("product.bulkPrice")}: {formatPrice(product.priceBulk, product.currency ?? "USD")}
               </p>
             )}
           </div>
@@ -111,13 +111,13 @@ export function ProductCard({ product, index }: ProductCardProps) {
                 className="text-2xl font-display font-bold"
                 style={{ color: color.bg === "#FEC00B" ? "#c49200" : color.bg }}
               >
-                ${product.priceSingle.toFixed(2)}
+                {formatPrice(product.priceSingle, product.currency ?? "USD")}
               </div>
             </div>
             {product.bulkMinQty && (
               <div className="text-right">
                 <div className="text-xs text-muted-foreground font-semibold uppercase tracking-wide">{t("product.bulkPrice")}</div>
-                <div className="text-sm font-bold text-muted-foreground">${product.priceBulk.toFixed(2)}</div>
+                <div className="text-sm font-bold text-muted-foreground">{formatPrice(product.priceBulk, product.currency ?? "USD")}</div>
               </div>
             )}
           </div>

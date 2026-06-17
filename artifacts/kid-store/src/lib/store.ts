@@ -1,3 +1,5 @@
+export type Currency = "USD" | "IQD";
+
 export interface Product {
   id: string;
   name: string;
@@ -6,7 +8,15 @@ export interface Product {
   priceSingle: number;
   priceBulk: number;
   bulkMinQty?: number;
+  currency: Currency;
   createdAt: string;
+}
+
+export function formatPrice(price: number, currency: Currency = "USD"): string {
+  if (currency === "IQD") {
+    return `${Math.round(price).toLocaleString()} IQD`;
+  }
+  return `$${price.toFixed(2)}`;
 }
 
 const STORAGE_KEY = "kid-store-products";
@@ -19,6 +29,7 @@ const INITIAL_PRODUCTS: Product[] = [
     priceSingle: 24.99,
     priceBulk: 19.99,
     bulkMinQty: 5,
+    currency: "USD",
     imageUrl: "https://picsum.photos/seed/kids-blocks/400/300",
     createdAt: new Date().toISOString(),
   },
@@ -29,6 +40,7 @@ const INITIAL_PRODUCTS: Product[] = [
     priceSingle: 14.50,
     priceBulk: 12.00,
     bulkMinQty: 3,
+    currency: "USD",
     imageUrl: "https://picsum.photos/seed/kids-bear/400/300",
     createdAt: new Date().toISOString(),
   },
@@ -39,6 +51,7 @@ const INITIAL_PRODUCTS: Product[] = [
     priceSingle: 12.99,
     priceBulk: 9.99,
     bulkMinQty: 4,
+    currency: "USD",
     imageUrl: "https://picsum.photos/seed/kids-puzzle/400/300",
     createdAt: new Date().toISOString(),
   },
@@ -49,6 +62,7 @@ const INITIAL_PRODUCTS: Product[] = [
     priceSingle: 45.00,
     priceBulk: 38.00,
     bulkMinQty: 2,
+    currency: "USD",
     imageUrl: "https://picsum.photos/seed/kids-table/400/300",
     createdAt: new Date().toISOString(),
   },
@@ -59,6 +73,7 @@ const INITIAL_PRODUCTS: Product[] = [
     priceSingle: 29.99,
     priceBulk: 24.99,
     bulkMinQty: 3,
+    currency: "USD",
     imageUrl: "https://picsum.photos/seed/kids-books/400/300",
     createdAt: new Date().toISOString(),
   },
@@ -69,6 +84,7 @@ const INITIAL_PRODUCTS: Product[] = [
     priceSingle: 34.50,
     priceBulk: 29.00,
     bulkMinQty: 4,
+    currency: "USD",
     imageUrl: "https://picsum.photos/seed/kids-train/400/300",
     createdAt: new Date().toISOString(),
   },
@@ -79,6 +95,7 @@ const INITIAL_PRODUCTS: Product[] = [
     priceSingle: 18.00,
     priceBulk: 15.00,
     bulkMinQty: 5,
+    currency: "USD",
     imageUrl: "https://picsum.photos/seed/kids-art/400/300",
     createdAt: new Date().toISOString(),
   },
@@ -89,6 +106,7 @@ const INITIAL_PRODUCTS: Product[] = [
     priceSingle: 22.00,
     priceBulk: 18.50,
     bulkMinQty: 3,
+    currency: "USD",
     imageUrl: "https://picsum.photos/seed/kids-xylo/400/300",
     createdAt: new Date().toISOString(),
   },
@@ -99,6 +117,7 @@ const INITIAL_PRODUCTS: Product[] = [
     priceSingle: 16.99,
     priceBulk: 13.99,
     bulkMinQty: 3,
+    currency: "USD",
     imageUrl: "https://picsum.photos/seed/kids-bunny/400/300",
     createdAt: new Date().toISOString(),
   },
@@ -109,6 +128,7 @@ const INITIAL_PRODUCTS: Product[] = [
     priceSingle: 25.00,
     priceBulk: 20.00,
     bulkMinQty: 5,
+    currency: "USD",
     imageUrl: "https://picsum.photos/seed/kids-bag/400/300",
     createdAt: new Date().toISOString(),
   },
@@ -119,6 +139,7 @@ const INITIAL_PRODUCTS: Product[] = [
     priceSingle: 9.99,
     priceBulk: 7.99,
     bulkMinQty: 10,
+    currency: "USD",
     imageUrl: "https://picsum.photos/seed/kids-cups/400/300",
     createdAt: new Date().toISOString(),
   },
@@ -129,6 +150,7 @@ const INITIAL_PRODUCTS: Product[] = [
     priceSingle: 39.99,
     priceBulk: 32.99,
     bulkMinQty: 2,
+    currency: "USD",
     imageUrl: "https://picsum.photos/seed/kids-tent/400/300",
     createdAt: new Date().toISOString(),
   }

@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { getProducts, addProduct, deleteProduct, Product } from "@/lib/store";
+import { getProducts, addProduct, deleteProduct, formatPrice, Product } from "@/lib/store";
 import { useI18n } from "@/lib/i18n";
 import { useToast } from "@/hooks/use-toast";
 
@@ -39,6 +39,7 @@ const formSchema = z.object({
   priceSingle: z.coerce.number().min(0.01),
   priceBulk: z.coerce.number().min(0.01),
   bulkMinQty: z.coerce.number().min(2).optional().or(z.literal(0)),
+  currency: z.enum(["USD", "IQD"]),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -66,8 +67,11 @@ export default function Admin() {
       priceSingle: 0,
       priceBulk: 0,
       bulkMinQty: 0,
+      currency: "USD",
     },
   });
+
+  const selectedCurrency = form.watch("currency");
 
   const onSubmit = (data: FormValues) => {
     const payload = {
@@ -189,15 +193,55 @@ export default function Admin() {
                       </FormItem>
                     )}
                   />
+
+                  <FormField
+                    control={form.control}
+                    name="currency"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t("form.currency")}</FormLabel>
+                        <FormControl>
+                          <div className="flex rounded-xl border-2 overflow-hidden">
+                            <button
+                              type="button"
+                              onClick={() => field.onChange("USD")}
+                              className={`flex-1 py-2 text-sm font-bold transition-colors ${
+                                field.value === "USD"
+                                  ? "bg-primary text-primary-foreground"
+                                  : "bg-background text-muted-foreground hover:bg-muted"
+                              }`}
+                            >
+                              $ USD
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => field.onChange("IQD")}
+                              className={`flex-1 py-2 text-sm font-bold transition-colors border-l-2 ${
+                                field.value === "IQD"
+                                  ? "bg-primary text-primary-foreground"
+                                  : "bg-background text-muted-foreground hover:bg-muted"
+                              }`}
+                            >
+                              IQD
+                            </button>
+                          </div>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
                   <div className="grid grid-cols-2 gap-4">
                     <FormField
                       control={form.control}
                       name="priceSingle"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>{t("form.priceSingle")}</FormLabel>
+                          <FormLabel>
+                            {t("form.priceSingle")} ({selectedCurrency === "IQD" ? "IQD" : "$"})
+                          </FormLabel>
                           <FormControl>
-                            <Input className="rounded-xl border-2" type="number" step="0.01" {...field} />
+                            <Input className="rounded-xl border-2" type="number" step={selectedCurrency === "IQD" ? "1" : "0.01"} {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -208,9 +252,11 @@ export default function Admin() {
                       name="priceBulk"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>{t("form.priceBulk")}</FormLabel>
+                          <FormLabel>
+                            {t("form.priceBulk")} ({selectedCurrency === "IQD" ? "IQD" : "$"})
+                          </FormLabel>
                           <FormControl>
-                            <Input className="rounded-xl border-2" type="number" step="0.01" {...field} />
+                            <Input className="rounded-xl border-2" type="number" step={selectedCurrency === "IQD" ? "1" : "0.01"} {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -287,15 +333,25 @@ export default function Admin() {
                     </AlertDialog>
                   </div>
                 </div>
+
+                <div className="flex flex-wrap gap-2 mb-2">
+                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold ${
+                    (product.currency ?? "USD") === "IQD"
+                      ? "bg-amber-100 text-amber-800"
+                      : "bg-green-100 text-green-800"
+                  }`}>
+                    {(product.currency ?? "USD") === "IQD" ? "IQD" : "$ USD"}
+                  </span>
+                </div>
                 
                 <div className="flex flex-wrap gap-4 mt-auto pt-4">
                   <div>
                     <div className="text-xs font-bold text-muted-foreground uppercase">{t("product.singlePrice")}</div>
-                    <div className="text-lg font-black text-foreground">${product.priceSingle.toFixed(2)}</div>
+                    <div className="text-lg font-black text-foreground">{formatPrice(product.priceSingle, product.currency ?? "USD")}</div>
                   </div>
                   <div>
                     <div className="text-xs font-bold text-muted-foreground uppercase">{t("product.bulkPrice")}</div>
-                    <div className="text-lg font-black text-secondary">${product.priceBulk.toFixed(2)}</div>
+                    <div className="text-lg font-black text-secondary">{formatPrice(product.priceBulk, product.currency ?? "USD")}</div>
                   </div>
                   {product.bulkMinQty && (
                     <div>

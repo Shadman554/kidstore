@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useRoute, Link } from "wouter";
-import { getProducts, Product } from "@/lib/store";
+import { getProducts, Product, formatPrice } from "@/lib/store";
 import { useI18n } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, ArrowRight, Package, Tag, ShoppingBag, ChevronLeft, ChevronRight } from "lucide-react";
@@ -14,9 +14,9 @@ const CARD_COLORS = [
   { bg: "#EE4C9F", text: "#ffffff" },
 ];
 
-function openWhatsApp(productName: string, priceSingle: number) {
+function openWhatsApp(productName: string, priceSingle: number, currency: import("@/lib/store").Currency = "USD") {
   const message = encodeURIComponent(
-    `Hi! I'm interested in ordering: ${productName} ($${priceSingle.toFixed(2)})`
+    `Hi! I'm interested in ordering: ${productName} (${formatPrice(priceSingle, currency)})`
   );
   window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${message}`, "_blank");
 }
@@ -108,7 +108,7 @@ export default function ProductDetail() {
             className="absolute top-4 right-4 rtl:left-4 rtl:right-auto px-3 py-1.5 rounded-full font-display font-bold text-sm shadow-lg"
             style={{ background: color.bg, color: color.text }}
           >
-            ${product.priceSingle.toFixed(2)}
+            {formatPrice(product.priceSingle, product.currency ?? "USD")}
           </div>
         </div>
 
@@ -137,7 +137,7 @@ export default function ProductDetail() {
                 className="font-display font-bold text-xl"
                 style={{ color: color.bg === "#FEC00B" ? "#c49200" : color.bg }}
               >
-                ${product.priceBulk.toFixed(2)}
+                {formatPrice(product.priceBulk, product.currency ?? "USD")}
               </span>
               <span className="text-sm text-muted-foreground font-semibold"> / ea</span>
             </div>
@@ -167,12 +167,12 @@ export default function ProductDetail() {
                 className="font-display font-bold text-2xl leading-none"
                 style={{ color: color.bg === "#FEC00B" ? "#c49200" : color.bg }}
               >
-                ${product.priceSingle.toFixed(2)}
+                {formatPrice(product.priceSingle, product.currency ?? "USD")}
               </div>
             </div>
             <Button
               size="lg"
-              onClick={() => openWhatsApp(product.name, product.priceSingle)}
+              onClick={() => openWhatsApp(product.name, product.priceSingle, product.currency ?? "USD")}
               className="flex-1 rounded-2xl h-12 font-display font-bold text-base border-0 shadow-md flex items-center gap-2"
               style={{ background: "#25D366", color: "#fff" }}
               data-testid="btn-buy-now"
@@ -221,7 +221,7 @@ export default function ProductDetail() {
                 className="font-display text-5xl font-bold"
                 style={{ color: color.bg === "#FEC00B" ? "#c49200" : color.bg }}
               >
-                ${product.priceSingle.toFixed(2)}
+                {formatPrice(product.priceSingle, product.currency ?? "USD")}
               </div>
             </div>
 
@@ -251,7 +251,7 @@ export default function ProductDetail() {
                       className="font-display text-3xl font-bold"
                       style={{ color: color.bg === "#FEC00B" ? "#c49200" : color.bg }}
                     >
-                      ${product.priceBulk.toFixed(2)}
+                      {formatPrice(product.priceBulk, product.currency ?? "USD")}
                       <span className="text-lg font-bold text-muted-foreground"> / ea</span>
                     </div>
                   </div>
@@ -261,7 +261,7 @@ export default function ProductDetail() {
 
             <Button
               size="lg"
-              onClick={() => openWhatsApp(product.name, product.priceSingle)}
+              onClick={() => openWhatsApp(product.name, product.priceSingle, product.currency ?? "USD")}
               className="mt-6 rounded-2xl h-14 text-lg font-display font-bold shadow-md hover:shadow-lg transition-shadow border-0 flex items-center gap-2"
               style={{ background: "#25D366", color: "#fff" }}
               data-testid="btn-buy-now-desktop"

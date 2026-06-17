@@ -31,6 +31,7 @@ const formSchema = z.object({
   priceSingle: z.coerce.number().min(0.01),
   priceBulk: z.coerce.number().min(0.01),
   bulkMinQty: z.coerce.number().min(2).optional().or(z.literal(0)),
+  currency: z.enum(["USD", "IQD"]),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -55,8 +56,11 @@ export function EditProductModal({ product, isOpen, onClose, onSuccess }: EditPr
       priceSingle: 0,
       priceBulk: 0,
       bulkMinQty: 0,
+      currency: "USD",
     },
   });
+
+  const selectedCurrency = form.watch("currency");
 
   useEffect(() => {
     if (isOpen && product) {
@@ -67,6 +71,7 @@ export function EditProductModal({ product, isOpen, onClose, onSuccess }: EditPr
         priceSingle: product.priceSingle,
         priceBulk: product.priceBulk,
         bulkMinQty: product.bulkMinQty || 0,
+        currency: product.currency ?? "USD",
       });
     }
   }, [isOpen, product, form]);
@@ -134,15 +139,55 @@ export function EditProductModal({ product, isOpen, onClose, onSuccess }: EditPr
                 </FormItem>
               )}
             />
+
+            <FormField
+              control={form.control}
+              name="currency"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t("form.currency")}</FormLabel>
+                  <FormControl>
+                    <div className="flex rounded-xl border-2 overflow-hidden">
+                      <button
+                        type="button"
+                        onClick={() => field.onChange("USD")}
+                        className={`flex-1 py-2 text-sm font-bold transition-colors ${
+                          field.value === "USD"
+                            ? "bg-primary text-primary-foreground"
+                            : "bg-background text-muted-foreground hover:bg-muted"
+                        }`}
+                      >
+                        $ USD
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => field.onChange("IQD")}
+                        className={`flex-1 py-2 text-sm font-bold transition-colors border-l-2 ${
+                          field.value === "IQD"
+                            ? "bg-primary text-primary-foreground"
+                            : "bg-background text-muted-foreground hover:bg-muted"
+                        }`}
+                      >
+                        IQD
+                      </button>
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
             <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="priceSingle"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t("form.priceSingle")}</FormLabel>
+                    <FormLabel>
+                      {t("form.priceSingle")} ({selectedCurrency === "IQD" ? "IQD" : "$"})
+                    </FormLabel>
                     <FormControl>
-                      <Input className="rounded-xl border-2" type="number" step="0.01" {...field} />
+                      <Input className="rounded-xl border-2" type="number" step={selectedCurrency === "IQD" ? "1" : "0.01"} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -153,9 +198,11 @@ export function EditProductModal({ product, isOpen, onClose, onSuccess }: EditPr
                 name="priceBulk"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t("form.priceBulk")}</FormLabel>
+                    <FormLabel>
+                      {t("form.priceBulk")} ({selectedCurrency === "IQD" ? "IQD" : "$"})
+                    </FormLabel>
                     <FormControl>
-                      <Input className="rounded-xl border-2" type="number" step="0.01" {...field} />
+                      <Input className="rounded-xl border-2" type="number" step={selectedCurrency === "IQD" ? "1" : "0.01"} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
