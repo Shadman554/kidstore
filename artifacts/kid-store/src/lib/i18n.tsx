@@ -87,7 +87,7 @@ const translations: Record<Language, Translations> = {
     "nav.admin": "بەڕێوەبردن",
     "catalog.search": "بەدوای بەرهەمەکان بگەڕێ...",
     "catalog.noResults": "هیچ بەرهەمێک نەدۆزرایەوە",
-    "product.singlePrice": "نرخی تاکەکە",
+    "product.singlePrice": "نرخی تاک",
     "product.bulkPrice": "نرخی کۆ",
     "product.bulkMinQty": "لانیکەم {qty} دانە",
     "product.viewDetails": "وردەکاری ببینە",
