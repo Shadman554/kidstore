@@ -33,13 +33,6 @@ export function Navbar() {
             >
               {t("nav.catalog")}
             </Link>
-            <Link
-              href="/admin"
-              className="font-display text-sm font-semibold px-4 py-2 rounded-full bg-[#01BCF3]/10 hover:bg-[#01BCF3]/25 text-foreground transition-colors"
-              data-testid="link-admin"
-            >
-              {t("nav.admin")}
-            </Link>
           </div>
 
           <div className="h-6 w-px bg-border mx-1" />

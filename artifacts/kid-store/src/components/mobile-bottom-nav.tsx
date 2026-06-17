@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { Home, Search, LayoutDashboard } from "lucide-react";
+import { Home, Search } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 
 export function MobileBottomNav() {
@@ -34,14 +34,6 @@ export function MobileBottomNav() {
       testId: "mobile-tab-search",
       active: false,
       onClick: handleSearchTab,
-    },
-    {
-      type: "link" as const,
-      href: "/admin",
-      icon: LayoutDashboard,
-      label: t("nav.admin"),
-      testId: "mobile-tab-admin",
-      active: location.startsWith("/admin"),
     },
   ];
 
