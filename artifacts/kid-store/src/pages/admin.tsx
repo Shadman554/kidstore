@@ -8,6 +8,7 @@ import { useI18n } from "@/lib/i18n";
 import { useToast } from "@/hooks/use-toast";
 
 import { EditProductModal } from "@/components/edit-product-modal";
+import { ImageUpload } from "@/components/image-upload";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -36,7 +37,7 @@ import {
 const formSchema = z.object({
   name: z.string().min(2, "Name is required"),
   description: z.string().optional(),
-  imageUrl: z.string().url().optional().or(z.literal("")),
+  imageUrl: z.string().optional(),
   priceSingle: z.coerce.number().min(0.01),
   priceBulk: z.coerce.number().min(0.01),
   bulkMinQty: z.coerce.number().min(2).optional().or(z.literal(0)),
@@ -251,9 +252,12 @@ export default function Admin() {
                     name="imageUrl"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>{t("form.imageUrl")}</FormLabel>
                         <FormControl>
-                          <Input className="rounded-xl border-2" type="url" {...field} />
+                          <ImageUpload
+                            value={field.value ?? ""}
+                            onChange={field.onChange}
+                            label={t("form.imageUrl")}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
