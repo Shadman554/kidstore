@@ -5,7 +5,6 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { I18nProvider } from "@/lib/i18n";
 import { Navbar } from "@/components/navbar";
-import { MobileBottomNav } from "@/components/mobile-bottom-nav";
 import { MobileHeader } from "@/components/mobile-header";
 
 import Catalog from "@/pages/catalog";
@@ -41,11 +40,9 @@ function App() {
                 <Navbar />
                 {/* Mobile header — hidden on desktop */}
                 <MobileHeader />
-                <main className="flex-1 pb-20 md:pb-0">
+                <main className="flex-1">
                   <Router />
                 </main>
-                {/* Mobile bottom tab bar */}
-                <MobileBottomNav />
               </WouterRouter>
             </div>
             <Toaster />
