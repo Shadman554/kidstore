@@ -1,19 +1,21 @@
-# [Project name]
+# Kid Store (WAW Store)
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+A colorful kids' toy store web app where users browse a product catalog, view product details, and manage inventory via an admin panel.
 
 ## Run & Operate
 
-- `pnpm --filter @workspace/api-server run dev` — run the API server (port 5000)
+- `PORT=5000 BASE_PATH=/ pnpm --filter @workspace/kid-store run dev` — run the frontend (port 5000)
+- `PORT=3000 pnpm --filter @workspace/api-server run dev` — run the API server (port 3000)
 - `pnpm run typecheck` — full typecheck across all packages
 - `pnpm run build` — typecheck + build all packages
 - `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
 - `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
-- Required env: `DATABASE_URL` — Postgres connection string
+- Required env: `DATABASE_URL` — Postgres connection string, `BASE_PATH` — Vite base path (set to `/`)
 
 ## Stack
 
-- pnpm workspaces, Node.js 24, TypeScript 5.9
+- pnpm workspaces, Node.js 20, TypeScript 5.9
+- Frontend: React 19, Vite 7, Tailwind CSS v4, wouter, TanStack Query
 - API: Express 5
 - DB: PostgreSQL + Drizzle ORM
 - Validation: Zod (`zod/v4`), `drizzle-zod`
@@ -22,15 +24,30 @@ _Replace the heading above with the project's name, and this line with one sente
 
 ## Where things live
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
+- `artifacts/kid-store/` — React frontend (main app)
+- `artifacts/api-server/` — Express API server
+- `artifacts/mockup-sandbox/` — UI prototyping sandbox
+- `lib/db/src/schema/` — Drizzle DB schema (source of truth)
+- `lib/api-spec/openapi.yaml` — OpenAPI spec (source of truth for API contracts)
+- `lib/api-client-react/` — auto-generated React Query hooks
+- `lib/api-zod/` — auto-generated Zod schemas
+- `artifacts/kid-store/src/lib/store.ts` — product data store (localStorage-backed)
+- `artifacts/kid-store/src/lib/config.ts` — app config (WhatsApp number, admin PIN)
 
 ## Architecture decisions
 
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
+- Products are stored in `localStorage` on the client — no server-side persistence needed for the catalog
+- Admin panel is PIN-gated (default PIN: `1234`) — see `ADMIN_PIN` in `config.ts`
+- Frontend uses Vite's `BASE_PATH` env var for the base URL to support subdirectory deployments
+- API server uses esbuild bundling to CJS/ESM for production
+- Monorepo uses pnpm workspace `catalog:` for shared dependency version management
 
 ## Product
 
-_Describe the high-level user-facing capabilities of this app once they exist._
+- **Catalog page**: Browse colorful product grid with search
+- **Product detail**: View product info and pricing (single vs. bulk)
+- **Admin panel**: PIN-protected page to add/edit/delete products
+- **WhatsApp ordering**: Products link to WhatsApp for purchase inquiries
 
 ## User preferences
 
@@ -38,7 +55,9 @@ _Populate as you build — explicit user instructions worth remembering across s
 
 ## Gotchas
 
-_Populate as you build — sharp edges, "always run X before Y" rules._
+- `PORT` and `BASE_PATH` must be set explicitly when running dev commands — they are required env vars in `vite.config.ts`
+- Frontend runs on port 5000 (webview), API server runs on port 3000 (console workflow)
+- Always run `pnpm --filter @workspace/api-spec run codegen` after changing `openapi.yaml`
 
 ## Pointers
 
