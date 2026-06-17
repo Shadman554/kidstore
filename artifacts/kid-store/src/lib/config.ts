@@ -1,7 +1,18 @@
-// WAW Store configuration
-// Replace WHATSAPP_NUMBER with your actual number (include country code, no +)
-export const WHATSAPP_NUMBER = "9647501234567";
+const WHATSAPP_STORAGE_KEY = "kid-store-whatsapp-number";
 
-// Admin PIN — change this to your preferred 4-digit PIN
+export const DEFAULT_WHATSAPP_NUMBER = "9647501234567";
+
+export function getWhatsAppNumber(): string {
+  try {
+    return localStorage.getItem(WHATSAPP_STORAGE_KEY) || DEFAULT_WHATSAPP_NUMBER;
+  } catch {
+    return DEFAULT_WHATSAPP_NUMBER;
+  }
+}
+
+export function setWhatsAppNumber(number: string): void {
+  localStorage.setItem(WHATSAPP_STORAGE_KEY, number);
+}
+
 export const ADMIN_PIN = "1234";
 export const ADMIN_PIN_KEY = "kid-store-admin-unlocked";

@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, ArrowRight, Package, Tag, ShoppingBag, ChevronLeft, ChevronRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ProductCard } from "@/components/product-card";
-import { WHATSAPP_NUMBER } from "@/lib/config";
+import { getWhatsAppNumber } from "@/lib/config";
 
 const CARD_COLORS = [
   { bg: "#FEC00B", text: "#1a1a2e" },
@@ -18,7 +18,7 @@ function openWhatsApp(productName: string, priceSingle: number, currency: import
   const message = encodeURIComponent(
     `Hi! I'm interested in ordering: ${productName} (${formatPrice(priceSingle, currency)})`
   );
-  window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${message}`, "_blank");
+  window.open(`https://wa.me/${getWhatsAppNumber()}?text=${message}`, "_blank");
 }
 
 export default function ProductDetail() {
