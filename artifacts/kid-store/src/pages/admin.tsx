@@ -97,10 +97,18 @@ export default function Admin() {
     });
   };
 
+  const usdProducts = products.filter((p) => (p.currency ?? "USD") === "USD");
+  const iqdProducts = products.filter((p) => (p.currency ?? "USD") === "IQD");
+
+  const avgOf = (arr: Product[], key: "priceSingle" | "priceBulk") =>
+    arr.length ? arr.reduce((acc, p) => acc + p[key], 0) / arr.length : null;
+
   const stats = {
     total: products.length,
-    avgSingle: products.length ? products.reduce((acc, p) => acc + p.priceSingle, 0) / products.length : 0,
-    avgBulk: products.length ? products.reduce((acc, p) => acc + p.priceBulk, 0) / products.length : 0,
+    usdAvgSingle: avgOf(usdProducts, "priceSingle"),
+    usdAvgBulk: avgOf(usdProducts, "priceBulk"),
+    iqdAvgSingle: avgOf(iqdProducts, "priceSingle"),
+    iqdAvgBulk: avgOf(iqdProducts, "priceBulk"),
   };
 
   return (
@@ -126,9 +134,17 @@ export default function Admin() {
             <div className="p-4 bg-secondary/10 rounded-2xl text-secondary">
               <DollarSign className="w-8 h-8" />
             </div>
-            <div>
+            <div className="min-w-0">
               <div className="text-sm font-bold text-muted-foreground uppercase">{t("admin.avgSinglePrice")}</div>
-              <div className="text-3xl font-black">${stats.avgSingle.toFixed(2)}</div>
+              {stats.usdAvgSingle !== null && (
+                <div className="text-2xl font-black leading-tight">${stats.usdAvgSingle.toFixed(2)}</div>
+              )}
+              {stats.iqdAvgSingle !== null && (
+                <div className="text-2xl font-black leading-tight">{Math.round(stats.iqdAvgSingle).toLocaleString()} IQD</div>
+              )}
+              {stats.usdAvgSingle === null && stats.iqdAvgSingle === null && (
+                <div className="text-2xl font-black">—</div>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -137,9 +153,17 @@ export default function Admin() {
             <div className="p-4 bg-accent/10 rounded-2xl text-accent">
               <TrendingDown className="w-8 h-8" />
             </div>
-            <div>
+            <div className="min-w-0">
               <div className="text-sm font-bold text-muted-foreground uppercase">{t("admin.avgBulkPrice")}</div>
-              <div className="text-3xl font-black">${stats.avgBulk.toFixed(2)}</div>
+              {stats.usdAvgBulk !== null && (
+                <div className="text-2xl font-black leading-tight">${stats.usdAvgBulk.toFixed(2)}</div>
+              )}
+              {stats.iqdAvgBulk !== null && (
+                <div className="text-2xl font-black leading-tight">{Math.round(stats.iqdAvgBulk).toLocaleString()} IQD</div>
+              )}
+              {stats.usdAvgBulk === null && stats.iqdAvgBulk === null && (
+                <div className="text-2xl font-black">—</div>
+              )}
             </div>
           </CardContent>
         </Card>
