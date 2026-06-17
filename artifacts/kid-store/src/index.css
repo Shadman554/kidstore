@@ -1,5 +1,22 @@
 @import url('https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,700&family=Fredoka:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
+
+@font-face {
+  font-family: 'KurdishFont';
+  src: url('/kurdish-font.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root:lang(ku) {
+  --font-kurdish: 'KurdishFont', sans-serif;
+}
+
+:lang(ku) body,
+:lang(ku) * {
+  font-family: 'KurdishFont', sans-serif !important;
+}
 @import "tw-animate-css";
 @plugin "@tailwindcss/typography";
 
