@@ -13,31 +13,24 @@ async function uploadToR2(file: File): Promise<string | null> {
   if (!token) return null;
 
   try {
-    const res = await fetch("/api/admin/upload-url", {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const res = await fetch("/api/admin/upload", {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({ contentType: file.type, filename: file.name }),
+      body: formData,
     });
 
     if (!res.ok) return null;
-    const { available, uploadUrl, fileUrl } = await res.json() as {
+    const { available, fileUrl } = await res.json() as {
       available: boolean;
-      uploadUrl?: string;
       fileUrl?: string;
     };
 
-    if (!available || !uploadUrl || !fileUrl) return null;
-
-    const uploadRes = await fetch(uploadUrl, {
-      method: "PUT",
-      headers: { "Content-Type": file.type },
-      body: file,
-    });
-
-    return uploadRes.ok ? fileUrl : null;
+    return available && fileUrl ? fileUrl : null;
   } catch {
     return null;
   }

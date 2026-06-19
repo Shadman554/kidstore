@@ -1,10 +1,11 @@
 import { Router, Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { randomUUID } from "crypto";
+import multer from "multer";
 
 const router = Router();
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
 
 function requireAdmin(req: Request, res: Response, next: NextFunction) {
   const auth = req.headers.authorization;
@@ -23,7 +24,7 @@ function requireAdmin(req: Request, res: Response, next: NextFunction) {
   }
 }
 
-router.post("/admin/upload-url", requireAdmin, async (req: Request, res: Response) => {
+router.post("/admin/upload", requireAdmin, upload.single("file"), async (req: Request, res: Response) => {
   const accountId = process.env.R2_ACCOUNT_ID;
   const accessKeyId = process.env.R2_ACCESS_KEY_ID;
   const secretAccessKey = process.env.R2_SECRET_ACCESS_KEY;
@@ -31,14 +32,15 @@ router.post("/admin/upload-url", requireAdmin, async (req: Request, res: Respons
   const publicUrl = process.env.R2_PUBLIC_URL;
 
   if (!accountId || !accessKeyId || !secretAccessKey || !bucketName || !publicUrl) {
-    res.json({ available: false });
+    res.json({ available: false, error: "R2 not configured" });
     return;
   }
 
-  const { contentType = "image/jpeg", filename = "image" } = req.body as {
-    contentType?: string;
-    filename?: string;
-  };
+  const file = req.file;
+  if (!file) {
+    res.status(400).json({ error: "No file provided" });
+    return;
+  }
 
   const s3 = new S3Client({
     region: "auto",
@@ -46,22 +48,22 @@ router.post("/admin/upload-url", requireAdmin, async (req: Request, res: Respons
     credentials: { accessKeyId, secretAccessKey },
   });
 
-  const ext = filename.includes(".") ? filename.split(".").pop() : "jpg";
+  const ext = file.originalname.includes(".") ? file.originalname.split(".").pop() : "jpg";
   const key = `products/${randomUUID()}.${ext}`;
 
-  const command = new PutObjectCommand({
-    Bucket: bucketName,
-    Key: key,
-    ContentType: contentType,
-  });
-
   try {
-    const uploadUrl = await getSignedUrl(s3, command, { expiresIn: 300 });
+    await s3.send(new PutObjectCommand({
+      Bucket: bucketName,
+      Key: key,
+      Body: file.buffer,
+      ContentType: file.mimetype,
+    }));
+
     const fileUrl = `${publicUrl.replace(/\/$/, "")}/${key}`;
-    res.json({ available: true, uploadUrl, fileUrl });
+    res.json({ available: true, fileUrl });
   } catch (err) {
-    console.error("R2 presign error:", err);
-    res.status(500).json({ available: false, error: "Failed to generate upload URL" });
+    console.error("R2 upload error:", err);
+    res.status(500).json({ available: false, error: "Upload to R2 failed" });
   }
 });
 
