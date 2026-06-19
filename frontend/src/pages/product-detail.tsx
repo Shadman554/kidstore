@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, ArrowRight, Package, Tag, ShoppingBag, ChevronLeft, ChevronRight, Hash } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ProductCard } from "@/components/product-card";
-import { isWhatsAppEnabled, DEFAULT_WHATSAPP_NUMBER } from "@/lib/config";
+import { DEFAULT_WHATSAPP_NUMBER } from "@/lib/config";
 import { useSiteSettings } from "@/lib/use-site-settings";
 import { colorForText } from "@/lib/site-settings";
 import { translate, type Language } from "@/lib/i18n-core";
@@ -202,7 +202,7 @@ export default function ProductDetail() {
                 {formatPrice(product.priceSingle, product.currency ?? "USD")}
               </div>
             </div>
-            {isWhatsAppEnabled() && (
+            {settings?.whatsappEnabled && (
               <Button
                 size="lg"
                 onClick={() => openWhatsApp(product, whatsappNumber, lang, product.currency ?? "USD")}
@@ -315,7 +315,7 @@ export default function ProductDetail() {
               </div>
             )}
 
-            {isWhatsAppEnabled() && (
+            {settings?.whatsappEnabled && (
               <Button
                 size="lg"
                 onClick={() => openWhatsApp(product, whatsappNumber, lang, product.currency ?? "USD")}

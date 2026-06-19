@@ -3,6 +3,7 @@ import type { Product } from "./store";
 
 export interface AppSettings {
   whatsappNumber: string;
+  whatsappEnabled: boolean;
 }
 
 async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
@@ -90,5 +91,13 @@ export async function updateWhatsAppNumber(number: string): Promise<AppSettings>
     method: "PUT",
     headers: adminHeaders(),
     body: JSON.stringify({ whatsappNumber: number }),
+  });
+}
+
+export async function updateWhatsAppEnabled(enabled: boolean): Promise<AppSettings> {
+  return apiFetch<AppSettings>("/admin/settings", {
+    method: "PUT",
+    headers: adminHeaders(),
+    body: JSON.stringify({ whatsappEnabled: enabled }),
   });
 }

@@ -5,7 +5,7 @@ import * as z from "zod";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { fetchProducts, createProduct, deleteProduct, fetchSettings, updateWhatsAppNumber } from "@/lib/api";
 import { formatPrice, getFirstImage, Product } from "@/lib/store";
-import { isWhatsAppEnabled } from "@/lib/config";
+
 import { useI18n } from "@/lib/i18n";
 import { useToast } from "@/hooks/use-toast";
 
@@ -251,7 +251,7 @@ export default function Admin() {
         </Card>
       </div>
 
-      {isWhatsAppEnabled() && (
+      {settings?.whatsappEnabled && (
         <Card className="rounded-3xl border-2 shadow-sm mb-8">
           <CardContent className="p-6">
             <div className="flex items-center gap-3 mb-4">

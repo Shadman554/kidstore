@@ -22,10 +22,12 @@ async function getSetting(key: string): Promise<string | null> {
 router.get("/settings", async (_req, res) => {
   try {
     const whatsappNumber = (await getSetting("whatsapp_number")) ?? DEFAULT_WHATSAPP;
-    res.json({ whatsappNumber });
+    // Read from env var — "false" disables it, anything else (including unset) enables it
+    const whatsappEnabled = process.env.WHATSAPP_ENABLED !== "false";
+    res.json({ whatsappNumber, whatsappEnabled });
   } catch (err) {
     console.error("Error fetching settings:", err);
-    res.json({ whatsappNumber: DEFAULT_WHATSAPP });
+    res.json({ whatsappNumber: DEFAULT_WHATSAPP, whatsappEnabled: true });
   }
 });
 
@@ -48,7 +50,8 @@ router.put("/admin/settings", requireAdmin, async (req, res) => {
         target: siteSettingsTable.key,
         set: { value: cleaned, updatedAt: sql`now()` },
       });
-    res.json({ whatsappNumber: cleaned });
+    const whatsappEnabled = process.env.WHATSAPP_ENABLED !== "false";
+    res.json({ whatsappNumber: cleaned, whatsappEnabled });
   } catch (err) {
     console.error("Error saving setting:", err);
     res.status(500).json({ error: "Failed to save setting" });
