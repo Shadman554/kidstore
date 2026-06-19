@@ -33,11 +33,17 @@ type SortOption =
 
 type CurrencyFilter = "all" | "USD" | "IQD";
 
+function normalizeText(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/[\u064B-\u065F\u0670]/g, "");
+}
+
 function scoreProduct(product: Product, queryTokens: string[]): number {
   if (queryTokens.length === 0) return 1;
   let score = 0;
-  const name = product.name.toLowerCase();
-  const desc = (product.description ?? "").toLowerCase();
+  const name = normalizeText(product.name);
+  const desc = normalizeText(product.description ?? "");
   for (const token of queryTokens) {
     if (token.length < 2) continue;
     if (name === token) score += 10;
@@ -60,8 +66,8 @@ function scoreProduct(product: Product, queryTokens: string[]): number {
 
 function matchesQuery(product: Product, queryTokens: string[]): boolean {
   if (queryTokens.length === 0) return true;
-  const name = product.name.toLowerCase();
-  const desc = (product.description ?? "").toLowerCase();
+  const name = normalizeText(product.name);
+  const desc = normalizeText(product.description ?? "");
   return queryTokens.every((token) => {
     if (token.length < 2) return true;
     if (name.includes(token) || desc.includes(token)) return true;
@@ -75,7 +81,7 @@ function matchesQuery(product: Product, queryTokens: string[]): boolean {
 }
 
 export default function Catalog() {
-  const { t, isRtl } = useI18n();
+  const { t, isRtl, lang } = useI18n();
   const { settings } = useSiteSettings();
   const [products] = useState<Product[]>(() => getProducts());
   const [search, setSearch] = useState("");
@@ -97,10 +103,11 @@ export default function Catalog() {
   const globalMin = Math.floor(Math.min(...allPrices, 0));
   const globalMax = Math.ceil(Math.max(...allPrices, 0));
 
+  const sortLocale = lang === "AR" ? "ar" : lang === "KU" ? "ckb" : "en";
+
   const queryTokens = useMemo(
     () =>
-      debouncedSearch
-        .toLowerCase()
+      normalizeText(debouncedSearch)
         .split(/\s+/)
         .filter((t) => t.length >= 1),
     [debouncedSearch]
@@ -128,9 +135,9 @@ export default function Catalog() {
     } else if (sortBy === "priceDesc") {
       result = [...result].sort((a, b) => b.priceSingle - a.priceSingle);
     } else if (sortBy === "nameAsc") {
-      result = [...result].sort((a, b) => a.name.localeCompare(b.name));
+      result = [...result].sort((a, b) => a.name.localeCompare(b.name, sortLocale));
     } else if (sortBy === "nameDesc") {
-      result = [...result].sort((a, b) => b.name.localeCompare(a.name));
+      result = [...result].sort((a, b) => b.name.localeCompare(a.name, sortLocale));
     } else if (sortBy === "newest") {
       result = [...result].sort(
         (a, b) =>
@@ -139,7 +146,7 @@ export default function Catalog() {
     }
 
     return result;
-  }, [products, queryTokens, sortBy, minPrice, maxPrice, currencyFilter]);
+  }, [products, queryTokens, sortBy, minPrice, maxPrice, currencyFilter, sortLocale]);
 
   const totalPages = Math.ceil(filteredProducts.length / ITEMS_PER_PAGE);
   const paginatedProducts = filteredProducts.slice(
