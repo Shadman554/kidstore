@@ -11,19 +11,24 @@ import { ProductCard } from "@/components/product-card";
 import { isWhatsAppEnabled, DEFAULT_WHATSAPP_NUMBER } from "@/lib/config";
 import { useSiteSettings } from "@/lib/use-site-settings";
 import { colorForText } from "@/lib/site-settings";
+import { translate, type Language } from "@/lib/i18n-core";
 
 function openWhatsApp(
   product: { name: string; priceSingle: number; description?: string | null; id: string },
   whatsappNumber: string,
+  lang: Language,
   currency: import("@/lib/store").Currency = "USD"
 ) {
   const productUrl = `${window.location.origin}/products/${product.id}`;
+  const price = formatPrice(product.priceSingle, currency);
   const lines = [
-    `Hi! I'm interested in ordering: ${product.name}`,
-    `Price: ${formatPrice(product.priceSingle, currency)}`,
+    translate("whatsapp.greeting", lang, { name: product.name }),
+    translate("whatsapp.price", lang, { price }),
   ];
-  if (product.description) lines.push(`Details: ${product.description}`);
-  lines.push(`Link: ${productUrl}`);
+  if (product.description) {
+    lines.push(translate("whatsapp.details", lang, { description: product.description }));
+  }
+  lines.push(translate("whatsapp.link", lang, { url: productUrl }));
   const message = encodeURIComponent(lines.join("\n"));
   window.open(`https://wa.me/${whatsappNumber}?text=${message}`, "_blank");
 }
@@ -31,7 +36,7 @@ function openWhatsApp(
 export default function ProductDetail() {
   const [, params] = useRoute("/products/:id");
   const id = params?.id;
-  const { t, isRtl } = useI18n();
+  const { t, isRtl, lang } = useI18n();
   const { cardColors } = useSiteSettings();
 
   const [activeImg, setActiveImg] = useState(0);
@@ -200,7 +205,7 @@ export default function ProductDetail() {
             {isWhatsAppEnabled() && (
               <Button
                 size="lg"
-                onClick={() => openWhatsApp(product, whatsappNumber, product.currency ?? "USD")}
+                onClick={() => openWhatsApp(product, whatsappNumber, lang, product.currency ?? "USD")}
                 className="flex-1 rounded-2xl h-12 font-display font-bold text-base border-0 shadow-md flex items-center gap-2"
                 style={{ background: "#25D366", color: "#fff" }}
                 data-testid="btn-buy-now"
@@ -313,7 +318,7 @@ export default function ProductDetail() {
             {isWhatsAppEnabled() && (
               <Button
                 size="lg"
-                onClick={() => openWhatsApp(product, whatsappNumber, product.currency ?? "USD")}
+                onClick={() => openWhatsApp(product, whatsappNumber, lang, product.currency ?? "USD")}
                 className="mt-6 rounded-2xl h-14 text-lg font-display font-bold shadow-md hover:shadow-lg transition-shadow border-0 flex items-center gap-2"
                 style={{ background: "#25D366", color: "#fff" }}
                 data-testid="btn-buy-now-desktop"

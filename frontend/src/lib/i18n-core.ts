@@ -69,6 +69,10 @@ export const translations: Record<Language, Translations> = {
     "product.code": "Product Code",
     "form.code": "Product Code",
     "form.codeHint": "Leave blank to auto-generate",
+    "whatsapp.greeting": "Hi! I'm interested in ordering: {name}",
+    "whatsapp.price": "Price: {price}",
+    "whatsapp.details": "Details: {description}",
+    "whatsapp.link": "Link: {url}",
   },
   AR: {
     "app.name": "متجر الأطفال",
@@ -136,6 +140,10 @@ export const translations: Record<Language, Translations> = {
     "product.code": "كود المنتج",
     "form.code": "كود المنتج",
     "form.codeHint": "اتركه فارغاً للتوليد التلقائي",
+    "whatsapp.greeting": "مرحباً! أرغب في طلب: {name}",
+    "whatsapp.price": "السعر: {price}",
+    "whatsapp.details": "التفاصيل: {description}",
+    "whatsapp.link": "الرابط: {url}",
   },
   KU: {
     "app.name": "فرۆشگای منداڵان",
@@ -203,6 +211,10 @@ export const translations: Record<Language, Translations> = {
     "product.code": "کۆدی بەرهەم",
     "form.code": "کۆدی بەرهەم",
     "form.codeHint": "بەتاڵ بهێڵەرەوە بۆ دروستکردنی خۆکار",
+    "whatsapp.greeting": "سڵاو! دەمەوێت داواکاری بکەم: {name}",
+    "whatsapp.price": "نرخ: {price}",
+    "whatsapp.details": "وردەکاری: {description}",
+    "whatsapp.link": "بەستەر: {url}",
   }
 };
 
