@@ -2,7 +2,7 @@
   "$schema": "https://railway.com/railway.schema.json",
   "build": {
     "builder": "NIXPACKS",
-    "buildCommand": "pnpm install && PORT=5000 BASE_PATH=/ pnpm --filter @workspace/kid-store run build && pnpm --filter @workspace/api-server run build"
+    "buildCommand": "pnpm install && VITE_WHATSAPP_ENABLED=true PORT=5000 BASE_PATH=/ pnpm --filter @workspace/kid-store run build && pnpm --filter @workspace/api-server run build"
   },
   "deploy": {
     "startCommand": "node --enable-source-maps backend/dist/index.mjs",
