@@ -40,7 +40,7 @@ const formSchema = z.object({
   description: z.string().optional(),
   images: z.array(z.string()).optional(),
   priceSingle: z.coerce.number().min(0.01),
-  priceBulk: z.coerce.number().min(0.01),
+  priceBulk: z.coerce.number().min(0),
   bulkMinQty: z.coerce.number().min(2).optional().or(z.literal(0)),
   currency: z.enum(["USD", "IQD"]),
 });
