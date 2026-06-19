@@ -14,13 +14,8 @@ export interface Product {
   createdAt: string;
 }
 
-export function generateProductCode(): string {
-  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-  let code = "WAW-";
-  for (let i = 0; i < 6; i++) {
-    code += chars[Math.floor(Math.random() * chars.length)];
-  }
-  return code;
+export function generateProductCode(num: number): string {
+  return `WAW-${String(num).padStart(3, "0")}`;
 }
 
 export function getFirstImage(product: Product): string | undefined {
@@ -182,13 +177,24 @@ export function getProducts(): Product[] {
       products = JSON.parse(data);
     }
     let changed = false;
-    products = products.map((p) => {
-      if (!p.code) {
+    const isSequentialCode = (code: string) => /^WAW-\d+$/.test(code);
+    const sorted = [...products].sort(
+      (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+    );
+    let counter = 1;
+    const codeMap = new Map<string, string>();
+    for (const p of sorted) {
+      if (!p.code || !isSequentialCode(p.code)) {
+        codeMap.set(p.id, generateProductCode(counter));
         changed = true;
-        return { ...p, code: generateProductCode() };
       }
-      return p;
-    });
+      counter++;
+    }
+    if (changed) {
+      products = products.map((p) =>
+        codeMap.has(p.id) ? { ...p, code: codeMap.get(p.id)! } : p
+      );
+    }
     if (changed || !data) {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(products));
     }
@@ -205,9 +211,10 @@ export function saveProducts(products: Product[]) {
 
 export function addProduct(product: Omit<Product, "id" | "createdAt"> & { code?: string }): Product {
   const products = getProducts();
+  const nextNum = products.length + 1;
   const newProduct: Product = {
     ...product,
-    code: product.code?.trim() || generateProductCode(),
+    code: product.code?.trim() || generateProductCode(nextNum),
     id: Date.now().toString(),
     createdAt: new Date().toISOString(),
   };
