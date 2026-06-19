@@ -76,13 +76,33 @@ export function saveProducts(products: Product[]) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(products));
 }
 
+function slugify(name: string): string {
+  const base = name
+    .toLowerCase()
+    .trim()
+    .replace(/[\s_]+/g, "-")
+    .replace(/[^\w\u0600-\u06FF-]/g, "")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+  return base || Date.now().toString();
+}
+
+function uniqueSlug(name: string, existing: Product[]): string {
+  const base = slugify(name);
+  const ids = new Set(existing.map((p) => p.id));
+  if (!ids.has(base)) return base;
+  let i = 2;
+  while (ids.has(`${base}-${i}`)) i++;
+  return `${base}-${i}`;
+}
+
 export function addProduct(product: Omit<Product, "id" | "createdAt"> & { code?: string }): Product {
   const products = getProducts();
   const nextNum = products.length + 1;
   const newProduct: Product = {
     ...product,
     code: product.code?.trim() || generateProductCode(nextNum),
-    id: Date.now().toString(),
+    id: uniqueSlug(product.name, products),
     createdAt: new Date().toISOString(),
   };
   saveProducts([newProduct, ...products]);
