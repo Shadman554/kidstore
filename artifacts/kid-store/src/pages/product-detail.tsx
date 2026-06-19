@@ -156,7 +156,6 @@ export default function ProductDetail() {
               >
                 {formatPrice(product.priceBulk, product.currency ?? "USD")}
               </span>
-              <span className="text-sm text-muted-foreground font-semibold"> / ea</span>
             </div>
           )}
 
@@ -284,7 +283,6 @@ export default function ProductDetail() {
                       style={{ color: color.bg === "#FEC00B" ? "#c49200" : color.bg }}
                     >
                       {formatPrice(product.priceBulk, product.currency ?? "USD")}
-                      <span className="text-lg font-bold text-muted-foreground"> / ea</span>
                     </div>
                   </div>
                 </div>
