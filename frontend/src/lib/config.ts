@@ -14,5 +14,3 @@ export function setWhatsAppNumber(number: string): void {
   localStorage.setItem(WHATSAPP_STORAGE_KEY, number);
 }
 
-export const ADMIN_PIN = "1234";
-export const ADMIN_PIN_KEY = "kid-store-admin-unlocked";

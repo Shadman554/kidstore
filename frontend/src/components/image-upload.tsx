@@ -1,5 +1,6 @@
-import { useRef } from "react";
-import { ImagePlus, X } from "lucide-react";
+import { useRef, useState } from "react";
+import { ImagePlus, X, Loader2, Cloud, HardDrive } from "lucide-react";
+import { getAdminToken } from "@/lib/admin-auth";
 
 interface MultiImageUploadProps {
   values: string[];
@@ -7,27 +8,78 @@ interface MultiImageUploadProps {
   label?: string;
 }
 
+async function uploadToR2(file: File): Promise<string | null> {
+  const token = getAdminToken();
+  if (!token) return null;
+
+  try {
+    const res = await fetch("/api/admin/upload-url", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ contentType: file.type, filename: file.name }),
+    });
+
+    if (!res.ok) return null;
+    const { available, uploadUrl, fileUrl } = await res.json() as {
+      available: boolean;
+      uploadUrl?: string;
+      fileUrl?: string;
+    };
+
+    if (!available || !uploadUrl || !fileUrl) return null;
+
+    const uploadRes = await fetch(uploadUrl, {
+      method: "PUT",
+      headers: { "Content-Type": file.type },
+      body: file,
+    });
+
+    return uploadRes.ok ? fileUrl : null;
+  } catch {
+    return null;
+  }
+}
+
+function readAsDataURL(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
 export function MultiImageUpload({ values: valuesProp, onChange, label }: MultiImageUploadProps) {
   const values = Array.isArray(valuesProp) ? valuesProp : [];
   const inputRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+  const [useR2, setUseR2] = useState<boolean | null>(null);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files ?? []);
     if (!files.length) return;
-    let loaded = 0;
-    const results: string[] = [];
-    files.forEach((file, i) => {
-      const reader = new FileReader();
-      reader.onload = () => {
-        results[i] = reader.result as string;
-        loaded++;
-        if (loaded === files.length) {
-          onChange([...values, ...results]);
-        }
-      };
-      reader.readAsDataURL(file);
-    });
     e.target.value = "";
+    setUploading(true);
+
+    const results: string[] = [];
+
+    for (const file of files) {
+      const r2Url = await uploadToR2(file);
+      if (r2Url) {
+        if (useR2 === null) setUseR2(true);
+        results.push(r2Url);
+      } else {
+        if (useR2 === null) setUseR2(false);
+        const dataUrl = await readAsDataURL(file);
+        results.push(dataUrl);
+      }
+    }
+
+    onChange([...values, ...results]);
+    setUploading(false);
   };
 
   const handleRemove = (index: number, e: React.MouseEvent) => {
@@ -38,7 +90,15 @@ export function MultiImageUpload({ values: valuesProp, onChange, label }: MultiI
   return (
     <div className="space-y-1.5">
       {label && (
-        <div className="text-sm font-medium leading-none">{label}</div>
+        <div className="flex items-center justify-between">
+          <div className="text-sm font-medium leading-none">{label}</div>
+          {useR2 !== null && (
+            <div className={`flex items-center gap-1 text-xs font-semibold ${useR2 ? "text-green-600" : "text-muted-foreground"}`}>
+              {useR2 ? <Cloud className="w-3 h-3" /> : <HardDrive className="w-3 h-3" />}
+              {useR2 ? "R2 Cloud" : "Local"}
+            </div>
+          )}
+        </div>
       )}
       <input
         ref={inputRef}
@@ -66,17 +126,23 @@ export function MultiImageUpload({ values: valuesProp, onChange, label }: MultiI
         <button
           type="button"
           onClick={() => inputRef.current?.click()}
-          className="aspect-square rounded-xl border-2 border-dashed border-border hover:border-primary hover:bg-primary/5 transition-colors flex flex-col items-center justify-center gap-1 text-muted-foreground hover:text-primary"
+          disabled={uploading}
+          className="aspect-square rounded-xl border-2 border-dashed border-border hover:border-primary hover:bg-primary/5 transition-colors flex flex-col items-center justify-center gap-1 text-muted-foreground hover:text-primary disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          <ImagePlus className="w-6 h-6" />
-          <span className="text-xs font-semibold">Add</span>
+          {uploading ? (
+            <Loader2 className="w-6 h-6 animate-spin" />
+          ) : (
+            <>
+              <ImagePlus className="w-6 h-6" />
+              <span className="text-xs font-semibold">Add</span>
+            </>
+          )}
         </button>
       </div>
     </div>
   );
 }
 
-/* ── legacy single-image shim (kept for any other usage) ── */
 interface ImageUploadProps {
   value: string;
   onChange: (value: string) => void;
