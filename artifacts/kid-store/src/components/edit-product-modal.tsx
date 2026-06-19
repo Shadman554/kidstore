@@ -102,12 +102,12 @@ export function EditProductModal({ product, isOpen, onClose, onSuccess }: EditPr
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-[500px] rounded-3xl">
+      <DialogContent className="sm:max-w-[500px] rounded-3xl max-h-[90vh] flex flex-col">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold">{t("admin.editProduct")}</DialogTitle>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4 overflow-y-auto flex-1 pr-1">
             <FormField
               control={form.control}
               name="name"
