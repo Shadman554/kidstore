@@ -1,0 +1,11 @@
+node_modules
+**/node_modules
+**/dist
+**/.turbo
+.git
+.replit
+replit.nix
+attached_assets
+artifacts
+.local
+.agents
