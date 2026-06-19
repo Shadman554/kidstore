@@ -55684,10 +55684,21 @@ var admin_default = router2;
 var import_express3 = __toESM(require_express2(), 1);
 var import_jsonwebtoken2 = __toESM(require_jsonwebtoken(), 1);
 var import_multer = __toESM(require_multer(), 1);
-import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import { S3Client, PutObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
 import { randomUUID } from "crypto";
 var router3 = (0, import_express3.Router)();
 var upload = (0, import_multer.default)({ storage: import_multer.default.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
+function getS3Client() {
+  const accountId = process.env.R2_ACCOUNT_ID;
+  const accessKeyId = process.env.R2_ACCESS_KEY_ID;
+  const secretAccessKey = process.env.R2_SECRET_ACCESS_KEY;
+  if (!accountId || !accessKeyId || !secretAccessKey) return null;
+  return new S3Client({
+    region: "auto",
+    endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
+    credentials: { accessKeyId, secretAccessKey }
+  });
+}
 function requireAdmin(req, res, next) {
   const auth = req.headers.authorization;
   const jwtSecret = process.env.JWT_SECRET;
@@ -55703,12 +55714,9 @@ function requireAdmin(req, res, next) {
   }
 }
 router3.post("/admin/upload", requireAdmin, upload.single("file"), async (req, res) => {
-  const accountId = process.env.R2_ACCOUNT_ID;
-  const accessKeyId = process.env.R2_ACCESS_KEY_ID;
-  const secretAccessKey = process.env.R2_SECRET_ACCESS_KEY;
   const bucketName = process.env.R2_BUCKET_NAME;
-  const publicUrl = process.env.R2_PUBLIC_URL;
-  if (!accountId || !accessKeyId || !secretAccessKey || !bucketName || !publicUrl) {
+  const s3 = getS3Client();
+  if (!s3 || !bucketName) {
     res.json({ available: false, error: "R2 not configured" });
     return;
   }
@@ -55717,11 +55725,6 @@ router3.post("/admin/upload", requireAdmin, upload.single("file"), async (req, r
     res.status(400).json({ error: "No file provided" });
     return;
   }
-  const s3 = new S3Client({
-    region: "auto",
-    endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
-    credentials: { accessKeyId, secretAccessKey }
-  });
   const ext = file.originalname.includes(".") ? file.originalname.split(".").pop() : "jpg";
   const key = `products/${randomUUID()}.${ext}`;
   try {
@@ -55731,11 +55734,33 @@ router3.post("/admin/upload", requireAdmin, upload.single("file"), async (req, r
       Body: file.buffer,
       ContentType: file.mimetype
     }));
-    const fileUrl = `${publicUrl.replace(/\/$/, "")}/${key}`;
+    const fileUrl = `/api/images/${encodeURIComponent(key)}`;
     res.json({ available: true, fileUrl });
   } catch (err) {
     console.error("R2 upload error:", err);
     res.status(500).json({ available: false, error: "Upload to R2 failed" });
+  }
+});
+router3.get("/images/:key", async (req, res) => {
+  const bucketName = process.env.R2_BUCKET_NAME;
+  const s3 = getS3Client();
+  if (!s3 || !bucketName) {
+    res.status(503).send("Image storage not configured");
+    return;
+  }
+  const key = decodeURIComponent(req.params.key);
+  try {
+    const result = await s3.send(new GetObjectCommand({
+      Bucket: bucketName,
+      Key: key
+    }));
+    if (result.ContentType) res.setHeader("Content-Type", result.ContentType);
+    if (result.ContentLength) res.setHeader("Content-Length", result.ContentLength);
+    res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+    result.Body.pipe(res);
+  } catch (err) {
+    console.error("R2 fetch error:", err);
+    res.status(404).send("Image not found");
   }
 });
 var upload_default = router3;
