@@ -10,7 +10,6 @@ channel = "stable-25_05"
 
 [userenv.shared]
 BASE_PATH = "/"
-VITE_WHATSAPP_ENABLED = "true"
 
 [workflows]
 runButton = "Project"
