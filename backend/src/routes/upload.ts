@@ -1,7 +1,6 @@
 import { Router, Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import { S3Client, PutObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
-import { randomUUID } from "crypto";
 import multer from "multer";
 import { Readable } from "stream";
 
@@ -18,6 +17,16 @@ function getS3Client() {
     endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
     credentials: { accessKeyId, secretAccessKey },
   });
+}
+
+function sanitizeName(name: string): string {
+  return name
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\u0600-\u06FF\u0750-\u077F\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
+    .slice(0, 60) || "product";
 }
 
 function requireAdmin(req: Request, res: Response, next: NextFunction) {
@@ -37,6 +46,7 @@ function requireAdmin(req: Request, res: Response, next: NextFunction) {
 
 router.post("/admin/upload", requireAdmin, upload.single("file"), async (req: Request, res: Response) => {
   const bucketName = process.env.R2_BUCKET_NAME;
+  const publicUrl = process.env.R2_PUBLIC_URL;
   const s3 = getS3Client();
 
   if (!s3 || !bucketName) {
@@ -51,7 +61,11 @@ router.post("/admin/upload", requireAdmin, upload.single("file"), async (req: Re
   }
 
   const ext = file.originalname.includes(".") ? file.originalname.split(".").pop() : "jpg";
-  const key = `products/${randomUUID()}.${ext}`;
+  const productName = typeof req.body.productName === "string" && req.body.productName.trim()
+    ? sanitizeName(req.body.productName)
+    : "product";
+  const timestamp = Date.now();
+  const key = `products/${productName}-${timestamp}.${ext}`;
 
   try {
     await s3.send(new PutObjectCommand({
@@ -61,7 +75,11 @@ router.post("/admin/upload", requireAdmin, upload.single("file"), async (req: Re
       ContentType: file.mimetype,
     }));
 
-    const fileUrl = `/api/images/${encodeURIComponent(key)}`;
+    const isPublicUrl = publicUrl && !publicUrl.includes("r2.cloudflarestorage.com");
+    const fileUrl = isPublicUrl
+      ? `${publicUrl.replace(/\/$/, "")}/${key}`
+      : `/api/images/${encodeURIComponent(key)}`;
+
     res.json({ available: true, fileUrl });
   } catch (err) {
     console.error("R2 upload error:", err);
@@ -89,7 +107,6 @@ router.get("/images/:key", async (req: Request, res: Response) => {
     if (result.ContentType) res.setHeader("Content-Type", result.ContentType);
     if (result.ContentLength) res.setHeader("Content-Length", result.ContentLength);
     res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
-
     (result.Body as Readable).pipe(res);
   } catch (err) {
     console.error("R2 fetch error:", err);

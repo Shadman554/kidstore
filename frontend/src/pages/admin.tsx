@@ -296,6 +296,7 @@ export default function Admin() {
                             values={field.value ?? []}
                             onChange={field.onChange}
                             label={t("form.imageUrl")}
+                            productName={form.watch("name")}
                           />
                         </FormControl>
                         <FormMessage />

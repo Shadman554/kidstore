@@ -144,6 +144,7 @@ export function EditProductModal({ product, isOpen, onClose, onSuccess }: EditPr
                       values={field.value ?? []}
                       onChange={field.onChange}
                       label={t("form.imageUrl")}
+                      productName={form.watch("name")}
                     />
                   </FormControl>
                   <FormMessage />

@@ -55685,7 +55685,6 @@ var import_express3 = __toESM(require_express2(), 1);
 var import_jsonwebtoken2 = __toESM(require_jsonwebtoken(), 1);
 var import_multer = __toESM(require_multer(), 1);
 import { S3Client, PutObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
-import { randomUUID } from "crypto";
 var router3 = (0, import_express3.Router)();
 var upload = (0, import_multer.default)({ storage: import_multer.default.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
 function getS3Client() {
@@ -55698,6 +55697,9 @@ function getS3Client() {
     endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
     credentials: { accessKeyId, secretAccessKey }
   });
+}
+function sanitizeName(name) {
+  return name.toLowerCase().trim().replace(/[^a-z0-9\u0600-\u06FF\u0750-\u077F\s-]/g, "").replace(/\s+/g, "-").replace(/-+/g, "-").slice(0, 60) || "product";
 }
 function requireAdmin(req, res, next) {
   const auth = req.headers.authorization;
@@ -55715,6 +55717,7 @@ function requireAdmin(req, res, next) {
 }
 router3.post("/admin/upload", requireAdmin, upload.single("file"), async (req, res) => {
   const bucketName = process.env.R2_BUCKET_NAME;
+  const publicUrl = process.env.R2_PUBLIC_URL;
   const s3 = getS3Client();
   if (!s3 || !bucketName) {
     res.json({ available: false, error: "R2 not configured" });
@@ -55726,7 +55729,9 @@ router3.post("/admin/upload", requireAdmin, upload.single("file"), async (req, r
     return;
   }
   const ext = file.originalname.includes(".") ? file.originalname.split(".").pop() : "jpg";
-  const key = `products/${randomUUID()}.${ext}`;
+  const productName = typeof req.body.productName === "string" && req.body.productName.trim() ? sanitizeName(req.body.productName) : "product";
+  const timestamp = Date.now();
+  const key = `products/${productName}-${timestamp}.${ext}`;
   try {
     await s3.send(new PutObjectCommand({
       Bucket: bucketName,
@@ -55734,7 +55739,8 @@ router3.post("/admin/upload", requireAdmin, upload.single("file"), async (req, r
       Body: file.buffer,
       ContentType: file.mimetype
     }));
-    const fileUrl = `/api/images/${encodeURIComponent(key)}`;
+    const isPublicUrl = publicUrl && !publicUrl.includes("r2.cloudflarestorage.com");
+    const fileUrl = isPublicUrl ? `${publicUrl.replace(/\/$/, "")}/${key}` : `/api/images/${encodeURIComponent(key)}`;
     res.json({ available: true, fileUrl });
   } catch (err) {
     console.error("R2 upload error:", err);

@@ -6,21 +6,23 @@ interface MultiImageUploadProps {
   values: string[];
   onChange: (values: string[]) => void;
   label?: string;
+  productName?: string;
 }
 
-async function uploadToR2(file: File): Promise<string | null> {
+async function uploadToR2(file: File, productName?: string): Promise<string | null> {
   const token = getAdminToken();
   if (!token) return null;
 
   try {
     const formData = new FormData();
     formData.append("file", file);
+    if (productName?.trim()) {
+      formData.append("productName", productName.trim());
+    }
 
     const res = await fetch("/api/admin/upload", {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      headers: { Authorization: `Bearer ${token}` },
       body: formData,
     });
 
@@ -45,7 +47,7 @@ function readAsDataURL(file: File): Promise<string> {
   });
 }
 
-export function MultiImageUpload({ values: valuesProp, onChange, label }: MultiImageUploadProps) {
+export function MultiImageUpload({ values: valuesProp, onChange, label, productName }: MultiImageUploadProps) {
   const values = Array.isArray(valuesProp) ? valuesProp : [];
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
@@ -60,7 +62,7 @@ export function MultiImageUpload({ values: valuesProp, onChange, label }: MultiI
     const results: string[] = [];
 
     for (const file of files) {
-      const r2Url = await uploadToR2(file);
+      const r2Url = await uploadToR2(file, productName);
       if (r2Url) {
         if (useR2 === null) setUseR2(true);
         results.push(r2Url);
@@ -140,14 +142,16 @@ interface ImageUploadProps {
   value: string;
   onChange: (value: string) => void;
   label?: string;
+  productName?: string;
 }
 
-export function ImageUpload({ value, onChange, label }: ImageUploadProps) {
+export function ImageUpload({ value, onChange, label, productName }: ImageUploadProps) {
   return (
     <MultiImageUpload
       values={value ? [value] : []}
       onChange={(vals) => onChange(vals[0] ?? "")}
       label={label}
+      productName={productName}
     />
   );
 }
