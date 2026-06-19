@@ -144,15 +144,17 @@ export default function ProductDetail() {
             </p>
           )}
 
-          {product.bulkMinQty && (
+          {product.priceBulk > 0 && (
             <div className="rounded-2xl p-4 mb-5 border-2" style={{ background: `${color.bg}18`, borderColor: `${color.bg}40` }}>
               <div className="flex items-center gap-2 mb-1">
                 <Tag className="h-4 w-4" style={{ color: colorForText(color.bg) }} />
                 <span className="font-display font-bold text-sm text-foreground">{t("product.bulkPrice")}</span>
               </div>
-              <p className="text-xs text-muted-foreground font-semibold mb-2">
-                {t("product.bulkMinQty", { qty: product.bulkMinQty })}
-              </p>
+              {product.bulkMinQty ? (
+                <p className="text-xs text-muted-foreground font-semibold mb-2">
+                  {t("product.bulkMinQty", { qty: product.bulkMinQty })}
+                </p>
+              ) : null}
               <span
                 className="font-display font-bold text-xl"
                 style={{ color: colorForText(color.bg) }}
@@ -273,7 +275,7 @@ export default function ProductDetail() {
               </p>
             )}
 
-            {product.bulkMinQty && (
+            {product.priceBulk > 0 && (
               <div className="rounded-2xl p-6 mt-auto border-2" style={{ background: `${color.bg}18`, borderColor: `${color.bg}40` }}>
                 <div className="flex items-start gap-4">
                   <div className="p-3 rounded-xl hidden sm:block" style={{ background: color.bg, color: color.text }}>
@@ -286,9 +288,11 @@ export default function ProductDetail() {
                         Sale
                       </Badge>
                     </h3>
-                    <p className="text-muted-foreground mb-3 font-medium">
-                      {t("product.bulkMinQty", { qty: product.bulkMinQty })}
-                    </p>
+                    {product.bulkMinQty ? (
+                      <p className="text-muted-foreground mb-3 font-medium">
+                        {t("product.bulkMinQty", { qty: product.bulkMinQty })}
+                      </p>
+                    ) : null}
                     <div
                       className="font-display text-3xl font-bold"
                       style={{ color: colorForText(color.bg) }}
