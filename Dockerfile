@@ -21,4 +21,4 @@ RUN pnpm --filter @workspace/api-server run build
 
 ENV NODE_ENV=production
 EXPOSE 3000
-CMD ["sh", "-c", "pnpm --filter @workspace/db run push-force 2>/dev/null; node --enable-source-maps backend/dist/index.mjs"]
+CMD ["sh", "-c", "pnpm --filter @workspace/db run push-force && node --enable-source-maps backend/dist/index.mjs"]
