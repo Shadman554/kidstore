@@ -37,7 +37,6 @@ import {
 
 const formSchema = z.object({
   name: z.string().min(2, "Name is required"),
-  code: z.string().optional(),
   description: z.string().optional(),
   images: z.array(z.string()).optional(),
   priceSingle: z.coerce.number().min(0.01),
@@ -69,7 +68,6 @@ export default function Admin() {
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",
-      code: "",
       description: "",
       images: [],
       priceSingle: 0,
@@ -84,7 +82,6 @@ export default function Admin() {
   const onSubmit = (data: FormValues) => {
     const payload = {
       ...data,
-      code: data.code?.trim() || undefined,
       images: data.images && data.images.length > 0 ? data.images : undefined,
       imageUrl: undefined,
       bulkMinQty: data.bulkMinQty || undefined,
@@ -245,24 +242,6 @@ export default function Admin() {
                         <FormLabel>{t("form.name")}</FormLabel>
                         <FormControl>
                           <Input className="rounded-xl border-2" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="code"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t("form.code")}</FormLabel>
-                        <FormControl>
-                          <Input
-                            className="rounded-xl border-2 font-mono uppercase"
-                            placeholder={t("form.codeHint")}
-                            {...field}
-                            onChange={(e) => field.onChange(e.target.value.toUpperCase())}
-                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
