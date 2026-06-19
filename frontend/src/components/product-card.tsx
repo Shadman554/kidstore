@@ -62,7 +62,7 @@ export const ProductCard = memo(function ProductCard({ product, index }: Product
             <p className="text-white font-display font-bold text-sm leading-snug line-clamp-2 drop-shadow">
               {product.name}
             </p>
-            {product.bulkMinQty && (
+            {product.priceBulk > 0 && (
               <p className="text-white/70 text-[10px] font-semibold mt-0.5">
                 {t("product.bulkPrice")}: {formatPrice(product.priceBulk, product.currency ?? "USD")}
               </p>
@@ -108,7 +108,7 @@ export const ProductCard = memo(function ProductCard({ product, index }: Product
                 {formatPrice(product.priceSingle, product.currency ?? "USD")}
               </div>
             </div>
-            {product.bulkMinQty && (
+            {product.priceBulk > 0 && (
               <div className="text-right">
                 <div className="text-xs text-muted-foreground font-semibold uppercase tracking-wide">{t("product.bulkPrice")}</div>
                 <div className="text-sm font-bold text-muted-foreground">{formatPrice(product.priceBulk, product.currency ?? "USD")}</div>
