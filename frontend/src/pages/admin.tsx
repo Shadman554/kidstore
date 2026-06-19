@@ -443,7 +443,7 @@ export default function Admin() {
                   </div>
                   {product.bulkMinQty && (
                     <div>
-                      <div className="text-xs font-bold text-muted-foreground uppercase">کەمترین عەدەد</div>
+                      <div className="text-xs font-bold text-muted-foreground uppercase">{t("form.bulkMinQty")}</div>
                       <div className="text-lg font-black text-foreground">{product.bulkMinQty}</div>
                     </div>
                   )}

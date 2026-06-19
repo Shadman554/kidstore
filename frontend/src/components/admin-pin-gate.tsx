@@ -3,6 +3,8 @@ import { Lock, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ADMIN_PIN, ADMIN_PIN_KEY } from "@/lib/config";
+import { useSiteSettings } from "@/lib/site-settings-context";
+import { useI18n } from "@/lib/i18n";
 
 interface AdminPinGateProps {
   children: React.ReactNode;
@@ -14,6 +16,8 @@ export function AdminPinGate({ children }: AdminPinGateProps) {
   const [error, setError] = useState(false);
   const [showPin, setShowPin] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const { settings } = useSiteSettings();
+  const { t } = useI18n();
 
   useEffect(() => {
     const saved = sessionStorage.getItem(ADMIN_PIN_KEY);
@@ -47,12 +51,12 @@ export function AdminPinGate({ children }: AdminPinGateProps) {
         <div className="text-center mb-8">
           <div
             className="w-20 h-20 rounded-3xl mx-auto mb-5 flex items-center justify-center shadow-lg"
-            style={{ background: "#EE4C9F" }}
+            style={{ background: settings.color3 }}
           >
             <Lock className="w-9 h-9 text-white" />
           </div>
-          <h1 className="font-display text-3xl font-bold text-foreground mb-1">Admin Area</h1>
-          <p className="text-muted-foreground text-sm">Enter your PIN to continue</p>
+          <h1 className="font-display text-3xl font-bold text-foreground mb-1">{t("admin.title")}</h1>
+          <p className="text-muted-foreground text-sm">{t("admin.pinPrompt")}</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -62,15 +66,17 @@ export function AdminPinGate({ children }: AdminPinGateProps) {
               type={showPin ? "text" : "password"}
               inputMode="numeric"
               pattern="[0-9]*"
+              autoComplete="off"
               maxLength={8}
-              placeholder="Enter PIN"
+              placeholder={t("admin.pinPlaceholder")}
               value={pin}
               onChange={(e) => setPin(e.target.value.replace(/\D/g, ""))}
               className={`rounded-2xl border-2 h-14 text-center text-xl font-display tracking-[0.4em] pr-12 transition-colors ${
                 error
                   ? "border-red-400 bg-red-50 dark:bg-red-950/20 animate-[shake_0.3s_ease-in-out]"
-                  : "border-border focus:border-[#EE4C9F]"
+                  : "border-border"
               }`}
+              style={!error ? { ["--tw-ring-color" as string]: settings.color3 } : {}}
               data-testid="input-admin-pin"
             />
             <button
@@ -84,18 +90,18 @@ export function AdminPinGate({ children }: AdminPinGateProps) {
 
           {error && (
             <p className="text-red-500 text-sm text-center font-semibold">
-              Incorrect PIN. Try again.
+              {t("admin.pinError")}
             </p>
           )}
 
           <Button
             type="submit"
             className="w-full h-14 rounded-2xl font-display font-bold text-lg border-0 shadow-md"
-            style={{ background: "#EE4C9F", color: "#fff" }}
+            style={{ background: settings.color3, color: "#fff" }}
             disabled={pin.length < 1}
             data-testid="btn-admin-unlock"
           >
-            Unlock
+            {t("admin.pinUnlock")}
           </Button>
         </form>
       </div>

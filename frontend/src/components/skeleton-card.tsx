@@ -1,13 +1,14 @@
 import { Skeleton } from "@/components/ui/skeleton";
-
-const SKELETON_COLORS = ["#FEC00B33", "#01BCF333", "#EE4C9F33"];
+import { useSiteSettings } from "@/lib/site-settings-context";
 
 interface SkeletonCardProps {
   index?: number;
 }
 
 export function SkeletonCard({ index = 0 }: SkeletonCardProps) {
-  const bg = SKELETON_COLORS[index % 3];
+  const { settings } = useSiteSettings();
+  const colors = [settings.color1, settings.color2, settings.color3];
+  const bg = colors[index % 3] + "33";
 
   return (
     <div className="overflow-hidden flex flex-col h-full rounded-3xl shadow-md bg-white dark:bg-card">

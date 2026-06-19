@@ -47,6 +47,10 @@ const translations: Record<Language, Translations> = {
     "admin.cancel": "Cancel",
     "catalog.tagline1": "Find your child's favorite toy",
     "catalog.tagline2": "Quality products at the best prices",
+    "admin.pinPrompt": "Enter your PIN to continue",
+    "admin.pinPlaceholder": "Enter PIN",
+    "admin.pinError": "Incorrect PIN. Try again.",
+    "admin.pinUnlock": "Unlock",
   },
   AR: {
     "app.name": "متجر الأطفال",
@@ -90,6 +94,10 @@ const translations: Record<Language, Translations> = {
     "admin.cancel": "إلغاء",
     "catalog.tagline1": "اكتشف لعبة طفلك المفضلة",
     "catalog.tagline2": "منتجات عالية الجودة بأسعار مناسبة",
+    "admin.pinPrompt": "أدخل رمز PIN للمتابعة",
+    "admin.pinPlaceholder": "أدخل الرمز",
+    "admin.pinError": "رمز PIN غير صحيح. حاول مجدداً.",
+    "admin.pinUnlock": "فتح",
   },
   KU: {
     "app.name": "فرۆشگای منداڵان",
@@ -133,6 +141,10 @@ const translations: Record<Language, Translations> = {
     "admin.cancel": "پاشگەزبونەوە",
     "catalog.tagline1": "یاری دڵخوازی منداڵەکەت بدۆزەرەوە",
     "catalog.tagline2": "یاری باش و کوالێتی بەرز بە نرخێکی گونجاو",
+    "admin.pinPrompt": "پیناکەت بنووسە بۆ بەردەوامبوون",
+    "admin.pinPlaceholder": "پینا بنووسە",
+    "admin.pinError": "پینای ئەمە هەڵەیە. دووبارە هەوڵ بدەوە.",
+    "admin.pinUnlock": "کردنەوە",
   }
 };
 
