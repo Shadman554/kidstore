@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 
-type Language = "EN" | "AR" | "KU";
+export type Language = "EN" | "AR" | "KU";
 
 type Translations = Record<string, string>;
 
@@ -16,6 +16,7 @@ const translations: Record<Language, Translations> = {
     "product.bulkMinQty": "Min. {qty} units",
     "product.viewDetails": "View Details",
     "product.backToCatalog": "Back to Catalog",
+    "product.orderWhatsApp": "Order on WhatsApp",
     "admin.title": "Admin Dashboard",
     "admin.addProduct": "Add Product",
     "admin.editProduct": "Edit Product",
@@ -58,6 +59,7 @@ const translations: Record<Language, Translations> = {
     "product.bulkMinQty": "الحد الأدنى {qty} وحدة",
     "product.viewDetails": "عرض التفاصيل",
     "product.backToCatalog": "العودة إلى الكتالوج",
+    "product.orderWhatsApp": "اطلب عبر واتساب",
     "admin.title": "لوحة التحكم",
     "admin.addProduct": "إضافة منتج",
     "admin.editProduct": "تعديل المنتج",
@@ -100,6 +102,7 @@ const translations: Record<Language, Translations> = {
     "product.bulkMinQty": "لانیکەم {qty} دانە",
     "product.viewDetails": "وردەکاری ببینە",
     "product.backToCatalog": "گەڕانەوە بۆ کاتالۆگ",
+    "product.orderWhatsApp": "داواکاری لە واتساپ",
     "admin.title": "داشبۆردی بەڕێوەبردن",
     "admin.addProduct": "بەرهەم زیادبکە",
     "admin.editProduct": "بەرهەم دەستکاری بکە",
@@ -133,6 +136,18 @@ const translations: Record<Language, Translations> = {
   }
 };
 
+let _overrides: Record<string, Record<string, string>> = { EN: {}, AR: {}, KU: {} };
+let _refresh: () => void = () => {};
+
+export function setI18nOverrides(overrides: Record<string, Record<string, string>>) {
+  _overrides = overrides;
+  _refresh();
+}
+
+export function getDefaultTranslation(key: string, lang: Language): string {
+  return translations[lang]?.[key] ?? key;
+}
+
 interface I18nContextType {
   lang: Language;
   setLang: (lang: Language) => void;
@@ -147,6 +162,12 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     const saved = localStorage.getItem("kid-store-lang");
     return (saved as Language) || "EN";
   });
+  const [, setRevision] = useState(0);
+
+  useEffect(() => {
+    _refresh = () => setRevision((r) => r + 1);
+    return () => { _refresh = () => {}; };
+  }, []);
 
   const setLang = (newLang: Language) => {
     setLangState(newLang);
@@ -161,7 +182,8 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   }, [lang, isRtl]);
 
   const t = (key: string, params?: Record<string, string | number>) => {
-    let str = translations[lang][key] || key;
+    const override = _overrides[lang]?.[key];
+    let str = override ?? translations[lang]?.[key] ?? key;
     if (params) {
       Object.entries(params).forEach(([k, v]) => {
         str = str.replace(`{${k}}`, String(v));

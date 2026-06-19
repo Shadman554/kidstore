@@ -4,21 +4,18 @@ import { Product, formatPrice, getFirstImage } from "@/lib/store";
 import { useI18n } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, ArrowLeft } from "lucide-react";
+import { useSiteSettings } from "@/lib/site-settings-context";
+import { colorForText } from "@/lib/site-settings";
 
 interface ProductCardProps {
   product: Product;
   index: number;
 }
 
-const CARD_COLORS = [
-  { bg: "#FEC00B", text: "#1a1a2e" },
-  { bg: "#01BCF3", text: "#ffffff" },
-  { bg: "#EE4C9F", text: "#ffffff" },
-];
-
 export function ProductCard({ product, index }: ProductCardProps) {
   const { t, isRtl } = useI18n();
-  const color = CARD_COLORS[index % 3];
+  const { cardColors } = useSiteSettings();
+  const color = cardColors[index % 3];
 
   return (
     <motion.div
@@ -109,7 +106,7 @@ export function ProductCard({ product, index }: ProductCardProps) {
               <div className="text-xs text-muted-foreground font-semibold uppercase tracking-wide">{t("product.singlePrice")}</div>
               <div
                 className="text-2xl font-display font-bold"
-                style={{ color: color.bg === "#FEC00B" ? "#c49200" : color.bg }}
+                style={{ color: colorForText(color.bg) }}
               >
                 {formatPrice(product.priceSingle, product.currency ?? "USD")}
               </div>

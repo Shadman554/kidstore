@@ -6,11 +6,14 @@ import { SkeletonCard } from "@/components/skeleton-card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search, ChevronLeft, ChevronRight, PackageSearch } from "lucide-react";
+import { useSiteSettings } from "@/lib/site-settings-context";
+import { textOnBg } from "@/lib/site-settings";
 
 const ITEMS_PER_PAGE = 8;
 
 export default function Catalog() {
   const { t, isRtl } = useI18n();
+  const { settings } = useSiteSettings();
   const [products, setProducts] = useState<Product[]>(() => getProducts());
   const [loading] = useState(false);
   const [search, setSearch] = useState("");
@@ -36,12 +39,15 @@ export default function Catalog() {
     setPage(1);
   }, [search]);
 
+  const heroGradient = `linear-gradient(135deg, ${settings.color1} 0%, ${settings.color3} 55%, ${settings.color2} 100%)`;
+  const pageBadgeText = textOnBg(settings.color1);
+
   return (
     <div>
       {/* ── MOBILE HERO ── only shown on mobile */}
       <div className="md:hidden">
         {/* Gradient hero banner */}
-        <div className="relative overflow-hidden px-5 pt-5 pb-6" style={{ background: "linear-gradient(135deg, #FEC00B 0%, #EE4C9F 55%, #01BCF3 100%)" }}>
+        <div className="relative overflow-hidden px-5 pt-5 pb-6" style={{ background: heroGradient }}>
           {/* Decorative blobs */}
           <div className="absolute -top-6 -right-6 w-28 h-28 rounded-full bg-white/10" />
           <div className="absolute -bottom-4 -left-4 w-20 h-20 rounded-full bg-white/10" />
@@ -85,8 +91,8 @@ export default function Catalog() {
             </div>
           ) : filteredProducts.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20 text-center">
-              <div className="bg-[#FEC00B]/10 p-5 rounded-full mb-4">
-                <PackageSearch className="h-10 w-10 text-[#FEC00B]" />
+              <div className="p-5 rounded-full mb-4" style={{ background: `${settings.color1}22` }}>
+                <PackageSearch className="h-10 w-10" style={{ color: settings.color1 }} />
               </div>
               <h2 className="font-display text-xl font-bold text-foreground">{t("catalog.noResults")}</h2>
             </div>
@@ -111,7 +117,10 @@ export default function Catalog() {
                   >
                     {isRtl ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
                   </Button>
-                  <div className="font-display font-bold text-sm bg-[#FEC00B] text-[#1a1a2e] px-4 py-2 rounded-full shadow-sm">
+                  <div
+                    className="font-display font-bold text-sm px-4 py-2 rounded-full shadow-sm"
+                    style={{ background: settings.color1, color: pageBadgeText }}
+                  >
                     {page} / {totalPages}
                   </div>
                   <Button
@@ -130,16 +139,16 @@ export default function Catalog() {
         </div>
       </div>
 
-      {/* ── DESKTOP LAYOUT ── unchanged */}
+      {/* ── DESKTOP LAYOUT ── */}
       <div className="hidden md:block">
         <div className="relative overflow-hidden bg-white dark:bg-card border-b-2 border-border">
-          <div className={`absolute top-0 w-2 h-full bg-[#EE4C9F] ${isRtl ? 'right-0' : 'left-0'}`} />
-          <div className={`absolute top-0 w-2 h-full bg-[#01BCF3] ${isRtl ? 'right-2' : 'left-2'}`} />
-          <div className={`absolute top-0 w-2 h-full bg-[#FEC00B] ${isRtl ? 'right-4' : 'left-4'}`} />
+          <div className={`absolute top-0 w-2 h-full ${isRtl ? 'right-0' : 'left-0'}`} style={{ background: settings.color3 }} />
+          <div className={`absolute top-0 w-2 h-full ${isRtl ? 'right-2' : 'left-2'}`} style={{ background: settings.color2 }} />
+          <div className={`absolute top-0 w-2 h-full ${isRtl ? 'right-4' : 'left-4'}`} style={{ background: settings.color1 }} />
           <div className="container mx-auto px-6 py-8 md:py-10 ps-10">
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
               <div>
-                <p className="font-display text-lg md:text-2xl font-semibold text-[#EE4C9F] leading-snug">
+                <p className="font-display text-lg md:text-2xl font-semibold leading-snug" style={{ color: settings.color3 }}>
                   {t("catalog.tagline1")}
                 </p>
                 <p className="font-sans text-sm md:text-base text-muted-foreground mt-1 font-medium">
@@ -152,7 +161,7 @@ export default function Catalog() {
                 </div>
                 <Input
                   type="search"
-                  className={`${isRtl ? 'pr-12 pl-4' : 'pl-12 pr-4'} h-12 rounded-2xl border-2 bg-background focus-visible:ring-2 focus-visible:ring-[#FEC00B] font-sans`}
+                  className={`${isRtl ? 'pr-12 pl-4' : 'pl-12 pr-4'} h-12 rounded-2xl border-2 bg-background font-sans`}
                   placeholder={t("catalog.search")}
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
@@ -172,8 +181,8 @@ export default function Catalog() {
             </div>
           ) : filteredProducts.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-24 px-4 text-center bg-white dark:bg-card rounded-3xl border-2 border-dashed border-border">
-              <div className="bg-[#FEC00B]/10 p-5 rounded-full mb-4">
-                <PackageSearch className="h-12 w-12 text-[#FEC00B]" />
+              <div className="p-5 rounded-full mb-4" style={{ background: `${settings.color1}22` }}>
+                <PackageSearch className="h-12 w-12" style={{ color: settings.color1 }} />
               </div>
               <h2 className="font-display text-2xl font-bold text-foreground">{t("catalog.noResults")}</h2>
             </div>
@@ -195,7 +204,10 @@ export default function Catalog() {
                   >
                     {isRtl ? <ChevronRight className="h-5 w-5" /> : <ChevronLeft className="h-5 w-5" />}
                   </Button>
-                  <div className="font-display font-bold text-base bg-[#FEC00B] text-[#1a1a2e] px-5 py-2 rounded-full shadow-sm">
+                  <div
+                    className="font-display font-bold text-base px-5 py-2 rounded-full shadow-sm"
+                    style={{ background: settings.color1, color: pageBadgeText }}
+                  >
                     {page} / {totalPages}
                   </div>
                   <Button

@@ -4,6 +4,7 @@ import { ThemeProvider } from "next-themes";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { I18nProvider } from "@/lib/i18n";
+import { SiteSettingsProvider } from "@/lib/site-settings-context";
 import { Navbar } from "@/components/navbar";
 import { MobileHeader } from "@/components/mobile-header";
 
@@ -31,24 +32,24 @@ function Router() {
 function App() {
   return (
     <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
-      <I18nProvider>
-        <QueryClientProvider client={queryClient}>
-          <TooltipProvider>
-            <div className="min-h-screen bg-background flex flex-col font-sans">
-              <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-                {/* Desktop navbar — hidden on mobile */}
-                <Navbar />
-                {/* Mobile header — hidden on desktop */}
-                <MobileHeader />
-                <main className="flex-1">
-                  <Router />
-                </main>
-              </WouterRouter>
-            </div>
-            <Toaster />
-          </TooltipProvider>
-        </QueryClientProvider>
-      </I18nProvider>
+      <SiteSettingsProvider>
+        <I18nProvider>
+          <QueryClientProvider client={queryClient}>
+            <TooltipProvider>
+              <div className="min-h-screen bg-background flex flex-col font-sans">
+                <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
+                  <Navbar />
+                  <MobileHeader />
+                  <main className="flex-1">
+                    <Router />
+                  </main>
+                </WouterRouter>
+              </div>
+              <Toaster />
+            </TooltipProvider>
+          </QueryClientProvider>
+        </I18nProvider>
+      </SiteSettingsProvider>
     </ThemeProvider>
   );
 }

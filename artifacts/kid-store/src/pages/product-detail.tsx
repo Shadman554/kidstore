@@ -7,12 +7,8 @@ import { ArrowLeft, ArrowRight, Package, Tag, ShoppingBag, ChevronLeft, ChevronR
 import { Badge } from "@/components/ui/badge";
 import { ProductCard } from "@/components/product-card";
 import { getWhatsAppNumber } from "@/lib/config";
-
-const CARD_COLORS = [
-  { bg: "#FEC00B", text: "#1a1a2e" },
-  { bg: "#01BCF3", text: "#ffffff" },
-  { bg: "#EE4C9F", text: "#ffffff" },
-];
+import { useSiteSettings } from "@/lib/site-settings-context";
+import { colorForText } from "@/lib/site-settings";
 
 function openWhatsApp(productName: string, priceSingle: number, currency: import("@/lib/store").Currency = "USD") {
   const message = encodeURIComponent(
@@ -25,6 +21,7 @@ export default function ProductDetail() {
   const [, params] = useRoute("/products/:id");
   const id = params?.id;
   const { t, isRtl } = useI18n();
+  const { cardColors } = useSiteSettings();
 
   const [product, setProduct] = useState<Product | null>(null);
   const [productIndex, setProductIndex] = useState(0);
@@ -70,7 +67,7 @@ export default function ProductDetail() {
     );
   }
 
-  const color = CARD_COLORS[productIndex % 3];
+  const color = cardColors[productIndex % 3];
   const allImages = product.images && product.images.length > 0
     ? product.images
     : product.imageUrl
@@ -144,7 +141,7 @@ export default function ProductDetail() {
           {product.bulkMinQty && (
             <div className="rounded-2xl p-4 mb-5 border-2" style={{ background: `${color.bg}18`, borderColor: `${color.bg}40` }}>
               <div className="flex items-center gap-2 mb-1">
-                <Tag className="h-4 w-4" style={{ color: color.bg === "#FEC00B" ? "#c49200" : color.bg }} />
+                <Tag className="h-4 w-4" style={{ color: colorForText(color.bg) }} />
                 <span className="font-display font-bold text-sm text-foreground">{t("product.bulkPrice")}</span>
               </div>
               <p className="text-xs text-muted-foreground font-semibold mb-2">
@@ -152,7 +149,7 @@ export default function ProductDetail() {
               </p>
               <span
                 className="font-display font-bold text-xl"
-                style={{ color: color.bg === "#FEC00B" ? "#c49200" : color.bg }}
+                style={{ color: colorForText(color.bg) }}
               >
                 {formatPrice(product.priceBulk, product.currency ?? "USD")}
               </span>
@@ -181,7 +178,7 @@ export default function ProductDetail() {
               <div className="text-xs text-muted-foreground font-semibold">{t("product.singlePrice")}</div>
               <div
                 className="font-display font-bold text-2xl leading-none"
-                style={{ color: color.bg === "#FEC00B" ? "#c49200" : color.bg }}
+                style={{ color: colorForText(color.bg) }}
               >
                 {formatPrice(product.priceSingle, product.currency ?? "USD")}
               </div>
@@ -194,7 +191,7 @@ export default function ProductDetail() {
               data-testid="btn-buy-now"
             >
               <ShoppingBag className="w-5 h-5" />
-              Order on WhatsApp
+              {t("product.orderWhatsApp")}
             </Button>
           </div>
         </div>
@@ -250,7 +247,7 @@ export default function ProductDetail() {
               </div>
               <div
                 className="font-display text-5xl font-bold"
-                style={{ color: color.bg === "#FEC00B" ? "#c49200" : color.bg }}
+                style={{ color: colorForText(color.bg) }}
               >
                 {formatPrice(product.priceSingle, product.currency ?? "USD")}
               </div>
@@ -280,7 +277,7 @@ export default function ProductDetail() {
                     </p>
                     <div
                       className="font-display text-3xl font-bold"
-                      style={{ color: color.bg === "#FEC00B" ? "#c49200" : color.bg }}
+                      style={{ color: colorForText(color.bg) }}
                     >
                       {formatPrice(product.priceBulk, product.currency ?? "USD")}
                     </div>
@@ -297,7 +294,7 @@ export default function ProductDetail() {
               data-testid="btn-buy-now-desktop"
             >
               <ShoppingBag className="w-5 h-5" />
-              Order on WhatsApp
+              {t("product.orderWhatsApp")}
             </Button>
           </div>
         </div>

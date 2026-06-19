@@ -1,14 +1,15 @@
 import { Link, useLocation } from "wouter";
 import { Home, Search } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
+import { useSiteSettings } from "@/lib/site-settings-context";
 
 export function MobileBottomNav() {
   const [location, setLocation] = useLocation();
   const { t } = useI18n();
+  const { settings } = useSiteSettings();
 
   const handleSearchTab = () => {
     setLocation("/");
-    // After navigation, focus the search input
     setTimeout(() => {
       const input = document.querySelector<HTMLInputElement>("[data-testid='mobile-input-search']");
       if (input) {
@@ -45,16 +46,19 @@ export function MobileBottomNav() {
           const content = (
             <>
               {tab.active && (
-                <span className="absolute top-0 left-1/2 -translate-x-1/2 w-10 h-1 rounded-b-full bg-[#FEC00B]" />
+                <span
+                  className="absolute top-0 left-1/2 -translate-x-1/2 w-10 h-1 rounded-b-full"
+                  style={{ background: settings.color1 }}
+                />
               )}
               <Icon
                 className="h-5 w-5 transition-colors"
-                style={{ color: tab.active ? "#EE4C9F" : "#94a3b8" }}
+                style={{ color: tab.active ? settings.color3 : "#94a3b8" }}
                 strokeWidth={tab.active ? 2.5 : 1.8}
               />
               <span
                 className="text-[10px] font-display font-bold tracking-wide transition-colors"
-                style={{ color: tab.active ? "#EE4C9F" : "#94a3b8" }}
+                style={{ color: tab.active ? settings.color3 : "#94a3b8" }}
               >
                 {tab.label}
               </span>

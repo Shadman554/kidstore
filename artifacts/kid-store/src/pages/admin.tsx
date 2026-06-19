@@ -8,6 +8,7 @@ import { useI18n } from "@/lib/i18n";
 import { useToast } from "@/hooks/use-toast";
 
 import { EditProductModal } from "@/components/edit-product-modal";
+import { SiteSettingsModal } from "@/components/site-settings-modal";
 import { MultiImageUpload } from "@/components/image-upload";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -21,7 +22,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Package, Trash2, Edit2, DollarSign, TrendingDown, Phone, Check } from "lucide-react";
+import { Package, Trash2, Edit2, DollarSign, TrendingDown, Phone, Check, Settings2 } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -53,6 +54,7 @@ export default function Admin() {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [whatsappInput, setWhatsappInput] = useState(() => getWhatsAppNumber());
   const [whatsappSaved, setWhatsappSaved] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
 
   const loadProducts = () => {
     setProducts(getProducts());
@@ -128,9 +130,19 @@ export default function Admin() {
 
   return (
     <div className="container mx-auto px-4 py-8 md:py-12">
-      <h1 className="text-3xl md:text-5xl font-black text-primary mb-8 tracking-tight">
-        {t("admin.title")}
-      </h1>
+      <div className="flex items-start justify-between gap-4 mb-8">
+        <h1 className="text-3xl md:text-5xl font-black text-primary tracking-tight">
+          {t("admin.title")}
+        </h1>
+        <Button
+          variant="outline"
+          className="rounded-2xl border-2 font-bold flex items-center gap-2 shrink-0 mt-1"
+          onClick={() => setShowSettings(true)}
+        >
+          <Settings2 className="w-4 h-4" />
+          <span className="hidden sm:inline">Site Settings</span>
+        </Button>
+      </div>
 
       <div className="grid md:grid-cols-3 gap-4 mb-8">
         <Card className="rounded-3xl border-2 shadow-sm">
@@ -455,6 +467,8 @@ export default function Admin() {
           onSuccess={loadProducts}
         />
       )}
+
+      <SiteSettingsModal open={showSettings} onClose={() => setShowSettings(false)} />
     </div>
   );
 }
