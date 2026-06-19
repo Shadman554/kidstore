@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { getProducts, addProduct, deleteProduct, formatPrice, getFirstImage, Product } from "@/lib/store";
-import { getWhatsAppNumber, setWhatsAppNumber } from "@/lib/config";
+import { getWhatsAppNumber, setWhatsAppNumber, isWhatsAppEnabled } from "@/lib/config";
 import { useI18n } from "@/lib/i18n";
 import { useToast } from "@/hooks/use-toast";
 
@@ -220,34 +220,36 @@ export default function Admin() {
         </Card>
       </div>
 
-      <Card className="rounded-3xl border-2 shadow-sm mb-8">
-        <CardContent className="p-6">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="p-3 bg-[#25D366]/10 rounded-2xl">
-              <Phone className="w-6 h-6 text-[#25D366]" />
+      {isWhatsAppEnabled() && (
+        <Card className="rounded-3xl border-2 shadow-sm mb-8">
+          <CardContent className="p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-3 bg-[#25D366]/10 rounded-2xl">
+                <Phone className="w-6 h-6 text-[#25D366]" />
+              </div>
+              <div>
+                <div className="font-bold text-base">{t("admin.whatsappNumber")}</div>
+                <div className="text-xs text-muted-foreground">{t("admin.whatsappNumberHint")}</div>
+              </div>
             </div>
-            <div>
-              <div className="font-bold text-base">{t("admin.whatsappNumber")}</div>
-              <div className="text-xs text-muted-foreground">{t("admin.whatsappNumberHint")}</div>
+            <div className="flex gap-3">
+              <Input
+                className="rounded-xl border-2 font-mono text-base flex-1"
+                placeholder="e.g. 9647501234567"
+                value={whatsappInput}
+                onChange={(e) => { setWhatsappInput(e.target.value); setWhatsappSaved(false); }}
+                onKeyDown={(e) => e.key === "Enter" && handleSaveWhatsApp()}
+              />
+              <Button
+                onClick={handleSaveWhatsApp}
+                className={`rounded-xl font-bold px-5 shrink-0 transition-colors ${whatsappSaved ? "bg-[#25D366] hover:bg-[#25D366]" : ""}`}
+              >
+                {whatsappSaved ? <Check className="w-4 h-4" /> : t("form.save")}
+              </Button>
             </div>
-          </div>
-          <div className="flex gap-3">
-            <Input
-              className="rounded-xl border-2 font-mono text-base flex-1"
-              placeholder="e.g. 9647501234567"
-              value={whatsappInput}
-              onChange={(e) => { setWhatsappInput(e.target.value); setWhatsappSaved(false); }}
-              onKeyDown={(e) => e.key === "Enter" && handleSaveWhatsApp()}
-            />
-            <Button
-              onClick={handleSaveWhatsApp}
-              className={`rounded-xl font-bold px-5 shrink-0 transition-colors ${whatsappSaved ? "bg-[#25D366] hover:bg-[#25D366]" : ""}`}
-            >
-              {whatsappSaved ? <Check className="w-4 h-4" /> : t("form.save")}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
 
       <div className="grid lg:grid-cols-[1fr_2fr] gap-8">
         <div>

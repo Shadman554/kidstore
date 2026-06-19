@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, ArrowRight, Package, Tag, ShoppingBag, ChevronLeft, ChevronRight, Hash } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ProductCard } from "@/components/product-card";
-import { getWhatsAppNumber } from "@/lib/config";
+import { getWhatsAppNumber, isWhatsAppEnabled } from "@/lib/config";
 import { useSiteSettings } from "@/lib/use-site-settings";
 import { colorForText } from "@/lib/site-settings";
 
@@ -189,16 +189,18 @@ export default function ProductDetail() {
                 {formatPrice(product.priceSingle, product.currency ?? "USD")}
               </div>
             </div>
-            <Button
-              size="lg"
-              onClick={() => openWhatsApp(product.name, product.priceSingle, product.currency ?? "USD")}
-              className="flex-1 rounded-2xl h-12 font-display font-bold text-base border-0 shadow-md flex items-center gap-2"
-              style={{ background: "#25D366", color: "#fff" }}
-              data-testid="btn-buy-now"
-            >
-              <ShoppingBag className="w-5 h-5" />
-              {t("product.orderWhatsApp")}
-            </Button>
+            {isWhatsAppEnabled() && (
+              <Button
+                size="lg"
+                onClick={() => openWhatsApp(product.name, product.priceSingle, product.currency ?? "USD")}
+                className="flex-1 rounded-2xl h-12 font-display font-bold text-base border-0 shadow-md flex items-center gap-2"
+                style={{ background: "#25D366", color: "#fff" }}
+                data-testid="btn-buy-now"
+              >
+                <ShoppingBag className="w-5 h-5" />
+                {t("product.orderWhatsApp")}
+              </Button>
+            )}
           </div>
         </div>
       </div>
@@ -298,16 +300,18 @@ export default function ProductDetail() {
               </div>
             )}
 
-            <Button
-              size="lg"
-              onClick={() => openWhatsApp(product.name, product.priceSingle, product.currency ?? "USD")}
-              className="mt-6 rounded-2xl h-14 text-lg font-display font-bold shadow-md hover:shadow-lg transition-shadow border-0 flex items-center gap-2"
-              style={{ background: "#25D366", color: "#fff" }}
-              data-testid="btn-buy-now-desktop"
-            >
-              <ShoppingBag className="w-5 h-5" />
-              {t("product.orderWhatsApp")}
-            </Button>
+            {isWhatsAppEnabled() && (
+              <Button
+                size="lg"
+                onClick={() => openWhatsApp(product.name, product.priceSingle, product.currency ?? "USD")}
+                className="mt-6 rounded-2xl h-14 text-lg font-display font-bold shadow-md hover:shadow-lg transition-shadow border-0 flex items-center gap-2"
+                style={{ background: "#25D366", color: "#fff" }}
+                data-testid="btn-buy-now-desktop"
+              >
+                <ShoppingBag className="w-5 h-5" />
+                {t("product.orderWhatsApp")}
+              </Button>
+            )}
           </div>
         </div>
 
