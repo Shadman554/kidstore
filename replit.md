@@ -24,15 +24,25 @@ A colorful kids' toy store web app where users browse a product catalog, view pr
 
 ## Where things live
 
-- `artifacts/kid-store/` — React frontend (main app)
-- `artifacts/api-server/` — Express API server
-- `artifacts/mockup-sandbox/` — UI prototyping sandbox
+### Frontend
+- `frontend/` — React store app (package: `@workspace/kid-store`)
+- `frontend/src/lib/store.ts` — product data store (localStorage-backed)
+- `frontend/src/lib/config.ts` — app config (WhatsApp number, admin PIN)
+- `frontend/src/lib/site-settings.ts` — brand colors, fonts, text overrides
+- `frontend/src/pages/` — Catalog, ProductDetail, Admin pages
+- `frontend/src/components/` — shared UI components
+
+### Backend
+- `backend/` — Express API server (package: `@workspace/api-server`)
+
+### Shared Libraries
 - `lib/db/src/schema/` — Drizzle DB schema (source of truth)
 - `lib/api-spec/openapi.yaml` — OpenAPI spec (source of truth for API contracts)
 - `lib/api-client-react/` — auto-generated React Query hooks
 - `lib/api-zod/` — auto-generated Zod schemas
-- `artifacts/kid-store/src/lib/store.ts` — product data store (localStorage-backed)
-- `artifacts/kid-store/src/lib/config.ts` — app config (WhatsApp number, admin PIN)
+
+### Tooling
+- `artifacts/mockup-sandbox/` — UI prototyping sandbox
 
 ## Architecture decisions
 
@@ -46,7 +56,7 @@ A colorful kids' toy store web app where users browse a product catalog, view pr
 
 - **Catalog page**: Browse colorful product grid with search
 - **Product detail**: View product info and pricing (single vs. bulk)
-- **Admin panel**: PIN-protected page to add/edit/delete products
+- **Admin panel**: PIN-protected page to add/edit/delete products, and full Site Settings (colors, fonts, text)
 - **WhatsApp ordering**: Products link to WhatsApp for purchase inquiries
 
 ## User preferences
@@ -58,6 +68,7 @@ _Populate as you build — explicit user instructions worth remembering across s
 - `PORT` and `BASE_PATH` must be set explicitly when running dev commands — they are required env vars in `vite.config.ts`
 - Frontend runs on port 5000 (webview), API server runs on port 3000 (console workflow)
 - Always run `pnpm --filter @workspace/api-spec run codegen` after changing `openapi.yaml`
+- After moving directories, always run `pnpm install` to relink workspace symlinks
 
 ## Pointers
 
