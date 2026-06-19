@@ -11,18 +11,10 @@ const ITEMS_PER_PAGE = 8;
 
 export default function Catalog() {
   const { t, isRtl } = useI18n();
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [products, setProducts] = useState<Product[]>(() => getProducts());
+  const [loading] = useState(false);
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setProducts(getProducts());
-      setLoading(false);
-    }, 800);
-    return () => clearTimeout(timer);
-  }, []);
 
   const filteredProducts = useMemo(() => {
     if (!search.trim()) return products;
