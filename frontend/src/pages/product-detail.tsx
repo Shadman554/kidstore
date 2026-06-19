@@ -12,10 +12,19 @@ import { isWhatsAppEnabled, DEFAULT_WHATSAPP_NUMBER } from "@/lib/config";
 import { useSiteSettings } from "@/lib/use-site-settings";
 import { colorForText } from "@/lib/site-settings";
 
-function openWhatsApp(productName: string, priceSingle: number, whatsappNumber: string, currency: import("@/lib/store").Currency = "USD") {
-  const message = encodeURIComponent(
-    `Hi! I'm interested in ordering: ${productName} (${formatPrice(priceSingle, currency)})`
-  );
+function openWhatsApp(
+  product: { name: string; priceSingle: number; description?: string | null; id: string },
+  whatsappNumber: string,
+  currency: import("@/lib/store").Currency = "USD"
+) {
+  const productUrl = `${window.location.origin}/products/${product.id}`;
+  const lines = [
+    `Hi! I'm interested in ordering: ${product.name}`,
+    `Price: ${formatPrice(product.priceSingle, currency)}`,
+  ];
+  if (product.description) lines.push(`Details: ${product.description}`);
+  lines.push(`Link: ${productUrl}`);
+  const message = encodeURIComponent(lines.join("\n"));
   window.open(`https://wa.me/${whatsappNumber}?text=${message}`, "_blank");
 }
 
@@ -191,7 +200,7 @@ export default function ProductDetail() {
             {isWhatsAppEnabled() && (
               <Button
                 size="lg"
-                onClick={() => openWhatsApp(product.name, product.priceSingle, whatsappNumber, product.currency ?? "USD")}
+                onClick={() => openWhatsApp(product, whatsappNumber, product.currency ?? "USD")}
                 className="flex-1 rounded-2xl h-12 font-display font-bold text-base border-0 shadow-md flex items-center gap-2"
                 style={{ background: "#25D366", color: "#fff" }}
                 data-testid="btn-buy-now"
@@ -304,7 +313,7 @@ export default function ProductDetail() {
             {isWhatsAppEnabled() && (
               <Button
                 size="lg"
-                onClick={() => openWhatsApp(product.name, product.priceSingle, whatsappNumber, product.currency ?? "USD")}
+                onClick={() => openWhatsApp(product, whatsappNumber, product.currency ?? "USD")}
                 className="mt-6 rounded-2xl h-14 text-lg font-display font-bold shadow-md hover:shadow-lg transition-shadow border-0 flex items-center gap-2"
                 style={{ background: "#25D366", color: "#fff" }}
                 data-testid="btn-buy-now-desktop"
