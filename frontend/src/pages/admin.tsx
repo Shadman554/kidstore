@@ -37,6 +37,7 @@ import {
 
 const formSchema = z.object({
   name: z.string().min(2, "Name is required"),
+  code: z.string().optional(),
   description: z.string().optional(),
   images: z.array(z.string()).optional(),
   priceSingle: z.coerce.number().min(0.01),
@@ -68,6 +69,7 @@ export default function Admin() {
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",
+      code: "",
       description: "",
       images: [],
       priceSingle: 0,
@@ -82,6 +84,7 @@ export default function Admin() {
   const onSubmit = (data: FormValues) => {
     const payload = {
       ...data,
+      code: data.code?.trim() || undefined,
       images: data.images && data.images.length > 0 ? data.images : undefined,
       imageUrl: undefined,
       bulkMinQty: data.bulkMinQty || undefined,
@@ -249,6 +252,24 @@ export default function Admin() {
                   />
                   <FormField
                     control={form.control}
+                    name="code"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t("form.code")}</FormLabel>
+                        <FormControl>
+                          <Input
+                            className="rounded-xl border-2 font-mono uppercase"
+                            placeholder={t("form.codeHint")}
+                            {...field}
+                            onChange={(e) => field.onChange(e.target.value.toUpperCase())}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
                     name="description"
                     render={({ field }) => (
                       <FormItem>
@@ -387,7 +408,12 @@ export default function Admin() {
               </div>
               <div className="p-6 flex-1 flex flex-col">
                 <div className="flex justify-between items-start gap-4 mb-2">
-                  <h3 className="text-xl font-bold leading-tight">{product.name}</h3>
+                  <div>
+                    <h3 className="text-xl font-bold leading-tight">{product.name}</h3>
+                    <span className="inline-flex items-center gap-1 font-mono text-xs font-bold text-muted-foreground bg-muted px-2 py-0.5 rounded-md mt-1">
+                      {product.code}
+                    </span>
+                  </div>
                   <div className="flex items-center gap-2 shrink-0">
                     <Button 
                       variant="outline" 
@@ -431,6 +457,7 @@ export default function Admin() {
                     {(product.currency ?? "USD") === "IQD" ? "IQD" : "$ USD"}
                   </span>
                 </div>
+                <p className="text-sm text-muted-foreground line-clamp-2 mb-2">{product.description}</p>
                 
                 <div className="flex flex-wrap gap-4 mt-auto pt-4">
                   <div>

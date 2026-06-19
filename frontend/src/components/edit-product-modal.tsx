@@ -27,6 +27,7 @@ import {
 
 const formSchema = z.object({
   name: z.string().min(2, "Name is required"),
+  code: z.string().optional(),
   description: z.string().optional(),
   images: z.array(z.string()).optional(),
   priceSingle: z.coerce.number().min(0.01),
@@ -52,6 +53,7 @@ export function EditProductModal({ product, isOpen, onClose, onSuccess }: EditPr
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",
+      code: "",
       description: "",
       images: [],
       priceSingle: 0,
@@ -73,6 +75,7 @@ export function EditProductModal({ product, isOpen, onClose, onSuccess }: EditPr
           : [];
       form.reset({
         name: product.name,
+        code: product.code || "",
         description: product.description || "",
         images: existingImages,
         priceSingle: product.priceSingle,
@@ -86,6 +89,7 @@ export function EditProductModal({ product, isOpen, onClose, onSuccess }: EditPr
   const onSubmit = (data: FormValues) => {
     const payload = {
       ...data,
+      code: data.code?.trim() || product.code,
       images: data.images && data.images.length > 0 ? data.images : undefined,
       imageUrl: undefined,
       bulkMinQty: data.bulkMinQty || undefined,
@@ -116,6 +120,24 @@ export function EditProductModal({ product, isOpen, onClose, onSuccess }: EditPr
                   <FormLabel>{t("form.name")}</FormLabel>
                   <FormControl>
                     <Input className="rounded-xl border-2" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="code"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t("form.code")}</FormLabel>
+                  <FormControl>
+                    <Input
+                      className="rounded-xl border-2 font-mono uppercase"
+                      placeholder={t("form.codeHint")}
+                      {...field}
+                      onChange={(e) => field.onChange(e.target.value.toUpperCase())}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

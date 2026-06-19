@@ -2,6 +2,7 @@ export type Currency = "USD" | "IQD";
 
 export interface Product {
   id: string;
+  code: string;
   name: string;
   imageUrl?: string;
   images?: string[];
@@ -11,6 +12,15 @@ export interface Product {
   bulkMinQty?: number;
   currency: Currency;
   createdAt: string;
+}
+
+export function generateProductCode(): string {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  let code = "WAW-";
+  for (let i = 0; i < 6; i++) {
+    code += chars[Math.floor(Math.random() * chars.length)];
+  }
+  return code;
 }
 
 export function getFirstImage(product: Product): string | undefined {
@@ -165,11 +175,24 @@ const INITIAL_PRODUCTS: Product[] = [
 export function getProducts(): Product[] {
   try {
     const data = localStorage.getItem(STORAGE_KEY);
+    let products: Product[];
     if (!data) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(INITIAL_PRODUCTS));
-      return INITIAL_PRODUCTS;
+      products = INITIAL_PRODUCTS;
+    } else {
+      products = JSON.parse(data);
     }
-    return JSON.parse(data);
+    let changed = false;
+    products = products.map((p) => {
+      if (!p.code) {
+        changed = true;
+        return { ...p, code: generateProductCode() };
+      }
+      return p;
+    });
+    if (changed || !data) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(products));
+    }
+    return products;
   } catch (error) {
     console.error("Error reading products from localStorage", error);
     return INITIAL_PRODUCTS;
@@ -180,10 +203,11 @@ export function saveProducts(products: Product[]) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(products));
 }
 
-export function addProduct(product: Omit<Product, "id" | "createdAt">): Product {
+export function addProduct(product: Omit<Product, "id" | "createdAt"> & { code?: string }): Product {
   const products = getProducts();
   const newProduct: Product = {
     ...product,
+    code: product.code?.trim() || generateProductCode(),
     id: Date.now().toString(),
     createdAt: new Date().toISOString(),
   };

@@ -66,6 +66,9 @@ export const translations: Record<Language, Translations> = {
     "catalog.results": "{count} products",
     "catalog.showing": "Showing {count} of {total}",
     "catalog.activeFilters": "Active filters",
+    "product.code": "Product Code",
+    "form.code": "Product Code",
+    "form.codeHint": "Leave blank to auto-generate",
   },
   AR: {
     "app.name": "متجر الأطفال",
@@ -130,6 +133,9 @@ export const translations: Record<Language, Translations> = {
     "catalog.results": "{count} منتج",
     "catalog.showing": "عرض {count} من {total}",
     "catalog.activeFilters": "الفلاتر النشطة",
+    "product.code": "كود المنتج",
+    "form.code": "كود المنتج",
+    "form.codeHint": "اتركه فارغاً للتوليد التلقائي",
   },
   KU: {
     "app.name": "فرۆشگای منداڵان",
@@ -194,6 +200,9 @@ export const translations: Record<Language, Translations> = {
     "catalog.results": "{count} بەرهەم",
     "catalog.showing": "پیشاندانی {count} لە {total}",
     "catalog.activeFilters": "فلتەرە چالاکەکان",
+    "product.code": "کۆدی بەرهەم",
+    "form.code": "کۆدی بەرهەم",
+    "form.codeHint": "بەتاڵ بهێڵەرەوە بۆ دروستکردنی خۆکار",
   }
 };
 

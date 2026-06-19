@@ -3,7 +3,7 @@ import { useRoute, Link } from "wouter";
 import { getProducts, Product, formatPrice, getFirstImage } from "@/lib/store";
 import { useI18n } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, ArrowRight, Package, Tag, ShoppingBag, ChevronLeft, ChevronRight } from "lucide-react";
+import { ArrowLeft, ArrowRight, Package, Tag, ShoppingBag, ChevronLeft, ChevronRight, Hash } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ProductCard } from "@/components/product-card";
 import { getWhatsAppNumber } from "@/lib/config";
@@ -128,9 +128,15 @@ export default function ProductDetail() {
 
         {/* Scrollable content */}
         <div className="flex-1 px-5 pt-4 pb-28">
-          <h1 className="font-display text-2xl font-bold text-foreground leading-tight mb-3">
+          <h1 className="font-display text-2xl font-bold text-foreground leading-tight mb-2">
             {product.name}
           </h1>
+          {product.code && (
+            <div className="inline-flex items-center gap-1.5 font-mono text-xs font-bold text-muted-foreground bg-muted px-2.5 py-1 rounded-lg mb-3">
+              <Hash className="h-3 w-3" />
+              {product.code}
+            </div>
+          )}
 
           {product.description && (
             <p className="text-sm text-muted-foreground font-sans leading-relaxed mb-5">
@@ -238,9 +244,15 @@ export default function ProductDetail() {
           </div>
 
           <div className="flex flex-col">
-            <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-4 leading-tight">
+            <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-3 leading-tight">
               {product.name}
             </h1>
+            {product.code && (
+              <div className="inline-flex items-center gap-1.5 font-mono text-sm font-bold text-muted-foreground bg-muted px-3 py-1.5 rounded-xl mb-5">
+                <Hash className="h-4 w-4" />
+                {product.code}
+              </div>
+            )}
             <div className="mb-8">
               <div className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-2">
                 {t("product.singlePrice")}
