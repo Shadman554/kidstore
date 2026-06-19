@@ -425,14 +425,14 @@ export default function Admin() {
                       : "bg-background text-muted-foreground hover:bg-muted"
                   }`}
                 >
-                  {c === "all" ? t("catalog.currencyAll") : c}
+                  {c === "all" ? t("catalog.allCurrencies") : c}
                 </button>
               ))}
             </div>
           </div>
 
           <div className="text-xs text-muted-foreground font-semibold px-1">
-            {filteredAdminProducts.length} {t("catalog.results")}
+            {t("catalog.results", { count: filteredAdminProducts.length })}
           </div>
 
           {paginatedAdminProducts.map((product) => (
