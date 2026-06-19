@@ -42,6 +42,8 @@ app.use(
         allowedOrigins.some((o) => origin === o) ||
         /^https?:\/\/[^/]+\.replit\.dev$/.test(origin) ||
         /^https?:\/\/[^/]+\.repl\.co$/.test(origin) ||
+        /^https?:\/\/[^/]+\.railway\.app$/.test(origin) ||
+        /^https?:\/\/[^/]+\.up\.railway\.app$/.test(origin) ||
         origin.startsWith("http://localhost:") ||
         origin.startsWith("http://127.0.0.1:")
       ) {
@@ -61,7 +63,7 @@ if (process.env.NODE_ENV === "production") {
   const staticDir = path.join(process.cwd(), "frontend", "dist", "public");
   if (existsSync(staticDir)) {
     app.use(express.static(staticDir));
-    app.get("*", (_req, res) => {
+    app.get("/{*path}", (_req, res) => {
       const indexPath = path.join(staticDir, "index.html");
       if (existsSync(indexPath)) {
         createReadStream(indexPath).pipe(res);
