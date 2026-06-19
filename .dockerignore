@@ -6,6 +6,5 @@ node_modules
 .replit
 replit.nix
 attached_assets
-artifacts
 .local
 .agents
