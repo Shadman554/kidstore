@@ -1,6 +1,10 @@
 import { getAdminToken } from "./admin-auth";
 import type { Product } from "./store";
 
+export interface AppSettings {
+  whatsappNumber: string;
+}
+
 async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`/api${path}`, options);
   if (!res.ok) {
@@ -74,5 +78,17 @@ export async function deleteProduct(id: string): Promise<void> {
   await apiFetch<void>(`/admin/products/${id}`, {
     method: "DELETE",
     headers: adminHeaders(),
+  });
+}
+
+export async function fetchSettings(): Promise<AppSettings> {
+  return apiFetch<AppSettings>("/settings");
+}
+
+export async function updateWhatsAppNumber(number: string): Promise<AppSettings> {
+  return apiFetch<AppSettings>("/admin/settings", {
+    method: "PUT",
+    headers: adminHeaders(),
+    body: JSON.stringify({ whatsappNumber: number }),
   });
 }

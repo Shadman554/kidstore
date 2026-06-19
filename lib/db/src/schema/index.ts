@@ -22,3 +22,9 @@ export const insertProductSchema = createInsertSchema(productsTable, {
 
 export type InsertProduct = typeof productsTable.$inferInsert;
 export type DbProduct = typeof productsTable.$inferSelect;
+
+export const siteSettingsTable = pgTable("site_settings", {
+  key: text("key").primaryKey(),
+  value: text("value").notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});

@@ -1,11 +1,11 @@
-import { useState, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { fetchProducts, createProduct, deleteProduct } from "@/lib/api";
+import { fetchProducts, createProduct, deleteProduct, fetchSettings, updateWhatsAppNumber } from "@/lib/api";
 import { formatPrice, getFirstImage, Product } from "@/lib/store";
-import { getWhatsAppNumber, setWhatsAppNumber, isWhatsAppEnabled } from "@/lib/config";
+import { isWhatsAppEnabled } from "@/lib/config";
 import { useI18n } from "@/lib/i18n";
 import { useToast } from "@/hooks/use-toast";
 
@@ -58,15 +58,40 @@ export default function Admin() {
     queryFn: fetchProducts,
     staleTime: 0,
   });
+  const { data: settings } = useQuery({
+    queryKey: ["settings"],
+    queryFn: fetchSettings,
+    staleTime: 60_000,
+  });
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
-  const [whatsappInput, setWhatsappInput] = useState(() => getWhatsAppNumber());
+  const [whatsappInput, setWhatsappInput] = useState("");
   const [whatsappSaved, setWhatsappSaved] = useState(false);
+
+  useEffect(() => {
+    if (settings?.whatsappNumber && !whatsappInput) {
+      setWhatsappInput(settings.whatsappNumber);
+    }
+  }, [settings?.whatsappNumber]);
   const [showSettings, setShowSettings] = useState(false);
   const [adminSearch, setAdminSearch] = useState("");
   const [adminCurrency, setAdminCurrency] = useState<"all" | "USD" | "IQD">("all");
   const [adminPage, setAdminPage] = useState(1);
 
   const ADMIN_PAGE_SIZE = 5;
+
+  const saveWhatsAppMutation = useMutation({
+    mutationFn: updateWhatsAppNumber,
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["settings"] });
+      setWhatsappInput(data.whatsappNumber);
+      setWhatsappSaved(true);
+      setTimeout(() => setWhatsappSaved(false), 2000);
+      toast({ title: t("toast.whatsappSaved"), variant: "default" });
+    },
+    onError: (err: Error) => {
+      toast({ title: err.message, variant: "destructive" });
+    },
+  });
 
   const addMutation = useMutation({
     mutationFn: createProduct,
@@ -128,11 +153,7 @@ export default function Admin() {
   const handleSaveWhatsApp = () => {
     const cleaned = whatsappInput.replace(/\D/g, "");
     if (!cleaned) return;
-    setWhatsAppNumber(cleaned);
-    setWhatsappInput(cleaned);
-    setWhatsappSaved(true);
-    setTimeout(() => setWhatsappSaved(false), 2000);
-    toast({ title: t("toast.whatsappSaved"), variant: "default" });
+    saveWhatsAppMutation.mutate(cleaned);
   };
 
   const stats = {

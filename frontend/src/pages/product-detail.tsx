@@ -1,22 +1,22 @@
 import { useState } from "react";
 import { useRoute, Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
-import { fetchProducts } from "@/lib/api";
+import { fetchProducts, fetchSettings } from "@/lib/api";
 import { Product, formatPrice, getFirstImage } from "@/lib/store";
 import { useI18n } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, ArrowRight, Package, Tag, ShoppingBag, ChevronLeft, ChevronRight, Hash } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ProductCard } from "@/components/product-card";
-import { getWhatsAppNumber, isWhatsAppEnabled } from "@/lib/config";
+import { isWhatsAppEnabled, DEFAULT_WHATSAPP_NUMBER } from "@/lib/config";
 import { useSiteSettings } from "@/lib/use-site-settings";
 import { colorForText } from "@/lib/site-settings";
 
-function openWhatsApp(productName: string, priceSingle: number, currency: import("@/lib/store").Currency = "USD") {
+function openWhatsApp(productName: string, priceSingle: number, whatsappNumber: string, currency: import("@/lib/store").Currency = "USD") {
   const message = encodeURIComponent(
     `Hi! I'm interested in ordering: ${productName} (${formatPrice(priceSingle, currency)})`
   );
-  window.open(`https://wa.me/${getWhatsAppNumber()}?text=${message}`, "_blank");
+  window.open(`https://wa.me/${whatsappNumber}?text=${message}`, "_blank");
 }
 
 export default function ProductDetail() {
@@ -32,6 +32,13 @@ export default function ProductDetail() {
     queryFn: fetchProducts,
     staleTime: 30_000,
   });
+
+  const { data: settings } = useQuery({
+    queryKey: ["settings"],
+    queryFn: fetchSettings,
+    staleTime: 60_000,
+  });
+  const whatsappNumber = settings?.whatsappNumber ?? DEFAULT_WHATSAPP_NUMBER;
 
   const productIndex = Math.max(0, allProducts.findIndex((p) => p.id === id));
   const product: Product | null = allProducts[productIndex] ?? null;
@@ -184,7 +191,7 @@ export default function ProductDetail() {
             {isWhatsAppEnabled() && (
               <Button
                 size="lg"
-                onClick={() => openWhatsApp(product.name, product.priceSingle, product.currency ?? "USD")}
+                onClick={() => openWhatsApp(product.name, product.priceSingle, whatsappNumber, product.currency ?? "USD")}
                 className="flex-1 rounded-2xl h-12 font-display font-bold text-base border-0 shadow-md flex items-center gap-2"
                 style={{ background: "#25D366", color: "#fff" }}
                 data-testid="btn-buy-now"
@@ -297,7 +304,7 @@ export default function ProductDetail() {
             {isWhatsAppEnabled() && (
               <Button
                 size="lg"
-                onClick={() => openWhatsApp(product.name, product.priceSingle, product.currency ?? "USD")}
+                onClick={() => openWhatsApp(product.name, product.priceSingle, whatsappNumber, product.currency ?? "USD")}
                 className="mt-6 rounded-2xl h-14 text-lg font-display font-bold shadow-md hover:shadow-lg transition-shadow border-0 flex items-center gap-2"
                 style={{ background: "#25D366", color: "#fff" }}
                 data-testid="btn-buy-now-desktop"
