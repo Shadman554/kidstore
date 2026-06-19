@@ -19,7 +19,11 @@ var __require = /* @__PURE__ */ ((x) => typeof require !== "undefined" ? require
   throw Error('Dynamic require of "' + x + '" is not supported');
 });
 var __commonJS = (cb, mod) => function __require2() {
-  return mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
+  try {
+    return mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
+  } catch (e) {
+    throw mod = 0, e;
+  }
 };
 var __copyProps = (to, from, except, desc) => {
   if (from && typeof from === "object" || typeof from === "function") {
@@ -55686,7 +55690,25 @@ var import_jsonwebtoken2 = __toESM(require_jsonwebtoken(), 1);
 var import_multer = __toESM(require_multer(), 1);
 import { S3Client, PutObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
 var router3 = (0, import_express3.Router)();
-var upload = (0, import_multer.default)({ storage: import_multer.default.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
+var ALLOWED_MIME_TYPES = /* @__PURE__ */ new Set([
+  "image/jpeg",
+  "image/png",
+  "image/gif",
+  "image/webp",
+  "image/avif",
+  "image/svg+xml"
+]);
+var upload = (0, import_multer.default)({
+  storage: import_multer.default.memoryStorage(),
+  limits: { fileSize: 10 * 1024 * 1024 },
+  fileFilter(_req, file, cb) {
+    if (ALLOWED_MIME_TYPES.has(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error(`File type '${file.mimetype}' is not allowed. Only images are accepted.`));
+    }
+  }
+});
 function getS3Client() {
   const accountId = process.env.R2_ACCOUNT_ID;
   const accessKeyId = process.env.R2_ACCESS_KEY_ID;
@@ -55754,7 +55776,12 @@ router3.get("/images/:key", async (req, res) => {
     res.status(503).send("Image storage not configured");
     return;
   }
-  const key = decodeURIComponent(req.params.key);
+  const rawKey = decodeURIComponent(req.params.key);
+  const key = rawKey.replace(/\.\.[/\\]/g, "").replace(/^[/\\]+/, "");
+  if (!key.startsWith("products/") || key.includes("..")) {
+    res.status(400).send("Invalid image key");
+    return;
+  }
   try {
     const result = await s3.send(new GetObjectCommand({
       Bucket: bucketName,
@@ -55818,7 +55845,19 @@ app.use(
     }
   })
 );
-app.use((0, import_cors.default)());
+var allowedOrigins = (process.env.ALLOWED_ORIGINS ?? "").split(",").map((o) => o.trim()).filter(Boolean);
+app.use(
+  (0, import_cors.default)({
+    origin(origin, callback) {
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.some((o) => origin === o) || /^https?:\/\/[^/]+\.replit\.dev$/.test(origin) || /^https?:\/\/[^/]+\.repl\.co$/.test(origin) || origin.startsWith("http://localhost:") || origin.startsWith("http://127.0.0.1:")) {
+        return callback(null, true);
+      }
+      return callback(new Error(`CORS: origin '${origin}' not allowed`));
+    },
+    credentials: true
+  })
+);
 app.use(import_express5.default.json());
 app.use(import_express5.default.urlencoded({ extended: true }));
 app.use("/api", routes_default);

@@ -5,7 +5,27 @@ import multer from "multer";
 import { Readable } from "stream";
 
 const router = Router();
-const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
+
+const ALLOWED_MIME_TYPES = new Set([
+  "image/jpeg",
+  "image/png",
+  "image/gif",
+  "image/webp",
+  "image/avif",
+  "image/svg+xml",
+]);
+
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 10 * 1024 * 1024 },
+  fileFilter(_req, file, cb) {
+    if (ALLOWED_MIME_TYPES.has(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error(`File type '${file.mimetype}' is not allowed. Only images are accepted.`));
+    }
+  },
+});
 
 function getS3Client() {
   const accountId = process.env.R2_ACCOUNT_ID;
@@ -96,7 +116,12 @@ router.get("/images/:key", async (req: Request, res: Response) => {
     return;
   }
 
-  const key = decodeURIComponent(req.params.key);
+  const rawKey = decodeURIComponent(req.params.key);
+  const key = rawKey.replace(/\.\.[/\\]/g, "").replace(/^[/\\]+/, "");
+  if (!key.startsWith("products/") || key.includes("..")) {
+    res.status(400).send("Invalid image key");
+    return;
+  }
 
   try {
     const result = await s3.send(new GetObjectCommand({
