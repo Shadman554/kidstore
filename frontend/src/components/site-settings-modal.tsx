@@ -7,9 +7,10 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useSiteSettings } from "@/lib/site-settings-context";
+import { useSiteSettings } from "@/lib/use-site-settings";
 import { FONT_PRESETS, FontPreset } from "@/lib/site-settings";
-import { useI18n, getDefaultTranslation, Language } from "@/lib/i18n";
+import { useI18n } from "@/lib/i18n";
+import { getDefaultTranslation, Language } from "@/lib/i18n-core";
 import { RotateCcw } from "lucide-react";
 
 interface Props {

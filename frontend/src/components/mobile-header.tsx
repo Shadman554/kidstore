@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import WawLogo from "@assets/WAW_logo_1781717964078.svg";
 import { useSecretTap } from "@/hooks/use-secret-tap";
-import { useSiteSettings } from "@/lib/site-settings-context";
+import { useSiteSettings } from "@/lib/use-site-settings";
 
 export function MobileHeader() {
   const { lang, setLang, isRtl } = useI18n();

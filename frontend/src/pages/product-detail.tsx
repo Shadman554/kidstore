@@ -7,7 +7,7 @@ import { ArrowLeft, ArrowRight, Package, Tag, ShoppingBag, ChevronLeft, ChevronR
 import { Badge } from "@/components/ui/badge";
 import { ProductCard } from "@/components/product-card";
 import { getWhatsAppNumber } from "@/lib/config";
-import { useSiteSettings } from "@/lib/site-settings-context";
+import { useSiteSettings } from "@/lib/use-site-settings";
 import { colorForText } from "@/lib/site-settings";
 
 function openWhatsApp(productName: string, priceSingle: number, currency: import("@/lib/store").Currency = "USD") {

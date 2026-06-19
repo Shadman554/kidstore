@@ -1,16 +1,7 @@
-import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
+import { useState, useEffect, useCallback, ReactNode } from 'react';
 import { SiteSettings, getSiteSettings, saveSiteSettings, FONT_PRESETS, textOnBg } from './site-settings';
-import { setI18nOverrides } from './i18n';
-
-export interface CardColor { bg: string; text: string; }
-
-interface SiteSettingsContextType {
-  settings: SiteSettings;
-  update: (partial: Partial<SiteSettings>) => void;
-  cardColors: CardColor[];
-}
-
-const SiteSettingsContext = createContext<SiteSettingsContextType | undefined>(undefined);
+import { setI18nOverrides } from './i18n-core';
+import { SiteSettingsContext, CardColor } from './site-settings-types';
 
 function applyStyles(settings: SiteSettings) {
   const root = document.documentElement;
@@ -65,10 +56,4 @@ export function SiteSettingsProvider({ children }: { children: ReactNode }) {
       {children}
     </SiteSettingsContext.Provider>
   );
-}
-
-export function useSiteSettings() {
-  const ctx = useContext(SiteSettingsContext);
-  if (!ctx) throw new Error('useSiteSettings must be inside SiteSettingsProvider');
-  return ctx;
 }

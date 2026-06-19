@@ -6,7 +6,7 @@ import { SkeletonCard } from "@/components/skeleton-card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search, ChevronLeft, ChevronRight, PackageSearch } from "lucide-react";
-import { useSiteSettings } from "@/lib/site-settings-context";
+import { useSiteSettings } from "@/lib/use-site-settings";
 import { textOnBg } from "@/lib/site-settings";
 
 const ITEMS_PER_PAGE = 8;

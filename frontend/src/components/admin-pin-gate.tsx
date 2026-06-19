@@ -3,7 +3,7 @@ import { Lock, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ADMIN_PIN, ADMIN_PIN_KEY } from "@/lib/config";
-import { useSiteSettings } from "@/lib/site-settings-context";
+import { useSiteSettings } from "@/lib/use-site-settings";
 import { useI18n } from "@/lib/i18n";
 
 interface AdminPinGateProps {

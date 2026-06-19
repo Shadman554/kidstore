@@ -1,7 +1,7 @@
 import { Link, useLocation } from "wouter";
 import { Home, Search } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
-import { useSiteSettings } from "@/lib/site-settings-context";
+import { useSiteSettings } from "@/lib/use-site-settings";
 
 export function MobileBottomNav() {
   const [location, setLocation] = useLocation();
