@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { motion } from "framer-motion";
 import { Link } from "wouter";
 import { Product, formatPrice, getFirstImage } from "@/lib/store";
@@ -12,29 +13,30 @@ interface ProductCardProps {
   index: number;
 }
 
-export function ProductCard({ product, index }: ProductCardProps) {
+export const ProductCard = memo(function ProductCard({ product, index }: ProductCardProps) {
   const { t, isRtl } = useI18n();
   const { cardColors } = useSiteSettings();
   const color = cardColors[index % 3];
+  const isFirst = index === 0;
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 24, scale: 0.96 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
-      transition={{ duration: 0.35, delay: index * 0.07, ease: "easeOut" }}
+      transition={{ duration: 0.35, delay: Math.min(index * 0.07, 0.35), ease: "easeOut" }}
       className="h-full"
     >
       {/* ── MOBILE CARD ── app-style: image dominant, info overlay */}
       <Link href={`/products/${product.id}`} className="block md:hidden h-full" data-testid={`btn-view-mobile-${product.id}`}>
         <div className="relative rounded-3xl overflow-hidden shadow-lg active:scale-95 transition-transform duration-150 h-full min-h-[220px]">
-          {/* Image or color background */}
           <div className="absolute inset-0" style={{ background: color.bg }}>
             {getFirstImage(product) && (
               <img
                 src={getFirstImage(product)}
                 alt={product.name}
                 className="w-full h-full object-cover"
-                loading="lazy"
+                loading={isFirst ? "eager" : "lazy"}
+                fetchPriority={isFirst ? "high" : "low"}
               />
             )}
             {!getFirstImage(product) && (
@@ -47,10 +49,8 @@ export function ProductCard({ product, index }: ProductCardProps) {
             )}
           </div>
 
-          {/* Bottom gradient overlay */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
 
-          {/* Price badge — top right */}
           <div
             className="absolute top-3 right-3 rtl:left-3 rtl:right-auto px-2.5 py-1 rounded-full text-xs font-display font-bold shadow-lg"
             style={{ background: color.bg, color: color.text }}
@@ -58,7 +58,6 @@ export function ProductCard({ product, index }: ProductCardProps) {
             {formatPrice(product.priceSingle, product.currency ?? "USD")}
           </div>
 
-          {/* Info at bottom */}
           <div className="absolute bottom-0 left-0 right-0 p-3">
             <p className="text-white font-display font-bold text-sm leading-snug line-clamp-2 drop-shadow">
               {product.name}
@@ -72,19 +71,17 @@ export function ProductCard({ product, index }: ProductCardProps) {
         </div>
       </Link>
 
-      {/* ── DESKTOP CARD ── original design */}
+      {/* ── DESKTOP CARD ── */}
       <div className="hidden md:flex overflow-hidden flex-col h-full rounded-3xl border-0 shadow-md hover:shadow-xl transition-all duration-300 group hover:-translate-y-1 bg-white dark:bg-card">
-        <div
-          className="relative overflow-hidden"
-          style={{ background: color.bg }}
-        >
+        <div className="relative overflow-hidden" style={{ background: color.bg }}>
           <div className="aspect-[4/3] relative">
             {getFirstImage(product) ? (
               <img
                 src={getFirstImage(product)}
                 alt={product.name}
                 className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                loading="lazy"
+                loading={isFirst ? "eager" : "lazy"}
+                fetchPriority={isFirst ? "high" : "low"}
               />
             ) : (
               <div
@@ -135,4 +132,4 @@ export function ProductCard({ product, index }: ProductCardProps) {
       </div>
     </motion.div>
   );
-}
+});

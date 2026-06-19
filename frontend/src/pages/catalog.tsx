@@ -8,26 +8,28 @@ import { Button } from "@/components/ui/button";
 import { Search, ChevronLeft, ChevronRight, PackageSearch } from "lucide-react";
 import { useSiteSettings } from "@/lib/use-site-settings";
 import { textOnBg } from "@/lib/site-settings";
+import { useDebounce } from "@/hooks/use-debounce";
 
 const ITEMS_PER_PAGE = 8;
 
 export default function Catalog() {
   const { t, isRtl } = useI18n();
   const { settings } = useSiteSettings();
-  const [products, setProducts] = useState<Product[]>(() => getProducts());
+  const [products] = useState<Product[]>(() => getProducts());
   const [loading] = useState(false);
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
+  const debouncedSearch = useDebounce(search, 200);
 
   const filteredProducts = useMemo(() => {
-    if (!search.trim()) return products;
-    const lowerSearch = search.toLowerCase();
+    if (!debouncedSearch.trim()) return products;
+    const lower = debouncedSearch.toLowerCase();
     return products.filter(
       (p) =>
-        p.name.toLowerCase().includes(lowerSearch) ||
-        (p.description && p.description.toLowerCase().includes(lowerSearch))
+        p.name.toLowerCase().includes(lower) ||
+        (p.description && p.description.toLowerCase().includes(lower))
     );
-  }, [products, search]);
+  }, [products, debouncedSearch]);
 
   const totalPages = Math.ceil(filteredProducts.length / ITEMS_PER_PAGE);
   const paginatedProducts = filteredProducts.slice(
@@ -37,7 +39,7 @@ export default function Catalog() {
 
   useEffect(() => {
     setPage(1);
-  }, [search]);
+  }, [debouncedSearch]);
 
   const heroGradient = `linear-gradient(135deg, ${settings.color1} 0%, ${settings.color3} 55%, ${settings.color2} 100%)`;
   const pageBadgeText = textOnBg(settings.color1);

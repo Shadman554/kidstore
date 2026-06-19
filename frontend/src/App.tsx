@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import { Switch, Route, Router as WouterRouter } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ThemeProvider } from "next-themes";
@@ -7,25 +8,48 @@ import { I18nProvider } from "@/lib/i18n";
 import { SiteSettingsProvider } from "@/lib/site-settings-context";
 import { Navbar } from "@/components/navbar";
 import { MobileHeader } from "@/components/mobile-header";
-
-import Catalog from "@/pages/catalog";
-import ProductDetail from "@/pages/product-detail";
-import Admin from "@/pages/admin";
-import NotFound from "@/pages/not-found";
 import { AdminPinGate } from "@/components/admin-pin-gate";
 
-const queryClient = new QueryClient();
+const Catalog = lazy(() => import("@/pages/catalog"));
+const ProductDetail = lazy(() => import("@/pages/product-detail"));
+const Admin = lazy(() => import("@/pages/admin"));
+const NotFound = lazy(() => import("@/pages/not-found"));
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: Infinity,
+      gcTime: 1000 * 60 * 30,
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
+
+function PageFallback() {
+  return (
+    <div className="flex items-center justify-center min-h-[60vh]">
+      <div className="flex gap-2">
+        <span className="w-3 h-3 rounded-full bg-[--brand-1] animate-bounce [animation-delay:0ms]" />
+        <span className="w-3 h-3 rounded-full bg-[--brand-2] animate-bounce [animation-delay:150ms]" />
+        <span className="w-3 h-3 rounded-full bg-[--brand-3] animate-bounce [animation-delay:300ms]" />
+      </div>
+    </div>
+  );
+}
 
 function Router() {
   return (
-    <Switch>
-      <Route path="/" component={Catalog} />
-      <Route path="/products/:id" component={ProductDetail} />
-      <Route path="/admin">
+    <Suspense fallback={<PageFallback />}>
+      <Switch>
+        <Route path="/" component={Catalog} />
+        <Route path="/products/:id" component={ProductDetail} />
+        <Route path="/admin">
           <AdminPinGate><Admin /></AdminPinGate>
         </Route>
-      <Route component={NotFound} />
-    </Switch>
+        <Route component={NotFound} />
+      </Switch>
+    </Suspense>
   );
 }
 
