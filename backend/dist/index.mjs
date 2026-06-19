@@ -79303,19 +79303,31 @@ var siteSettingsTable = pgTable("site_settings", {
 var { Pool: Pool3 } = esm_default;
 var _pool = null;
 var _db = null;
+function resolveConnectionString() {
+  const candidates = [
+    process.env.DATABASE_URL,
+    process.env.DATABASE_PUBLIC_URL
+  ];
+  for (const raw of candidates) {
+    if (!raw) continue;
+    const url2 = raw.replace(/^["']|["']$/g, "").trim();
+    if (url2.startsWith("postgres://") || url2.startsWith("postgresql://")) {
+      return url2;
+    }
+  }
+  if (process.env.PGHOST) {
+    return "";
+  }
+  throw new Error(
+    "No valid DATABASE_URL or DATABASE_PUBLIC_URL found. Please set a PostgreSQL connection string in Railway Variables."
+  );
+}
 function getPool() {
   if (!_pool) {
-    const rawUrl = process.env.DATABASE_URL ?? "";
-    const url2 = rawUrl.replace(/^["']|["']$/g, "").trim();
-    const isValidUrl = url2.startsWith("postgres://") || url2.startsWith("postgresql://");
-    if (!isValidUrl && !process.env.PGHOST) {
-      throw new Error(
-        `DATABASE_URL must be set to a valid PostgreSQL connection string. Got: "${url2.slice(0, 30)}...". Did you forget to provision a database?`
-      );
-    }
-    const sslDisabled = url2.includes("sslmode=disable") || url2.includes("localhost") || url2.includes("127.0.0.1") || !!process.env.PGHOST?.match(/^(localhost|127\.0\.0\.1)$/);
+    const url2 = resolveConnectionString();
+    const sslDisabled = url2.includes("sslmode=disable") || url2.includes("localhost") || url2.includes("127.0.0.1");
     _pool = new Pool3(
-      isValidUrl ? { connectionString: url2, ssl: sslDisabled ? false : { rejectUnauthorized: false } } : { ssl: sslDisabled ? false : { rejectUnauthorized: false } }
+      url2 ? { connectionString: url2, ssl: sslDisabled ? false : { rejectUnauthorized: false } } : { ssl: { rejectUnauthorized: false } }
     );
   }
   return _pool;
