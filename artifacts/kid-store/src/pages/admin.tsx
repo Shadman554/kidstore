@@ -2,13 +2,13 @@ import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { getProducts, addProduct, deleteProduct, formatPrice, Product } from "@/lib/store";
+import { getProducts, addProduct, deleteProduct, formatPrice, getFirstImage, Product } from "@/lib/store";
 import { getWhatsAppNumber, setWhatsAppNumber } from "@/lib/config";
 import { useI18n } from "@/lib/i18n";
 import { useToast } from "@/hooks/use-toast";
 
 import { EditProductModal } from "@/components/edit-product-modal";
-import { ImageUpload } from "@/components/image-upload";
+import { MultiImageUpload } from "@/components/image-upload";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -37,7 +37,7 @@ import {
 const formSchema = z.object({
   name: z.string().min(2, "Name is required"),
   description: z.string().optional(),
-  imageUrl: z.string().optional(),
+  images: z.array(z.string()).optional(),
   priceSingle: z.coerce.number().min(0.01),
   priceBulk: z.coerce.number().min(0.01),
   bulkMinQty: z.coerce.number().min(2).optional().or(z.literal(0)),
@@ -67,7 +67,7 @@ export default function Admin() {
     defaultValues: {
       name: "",
       description: "",
-      imageUrl: "",
+      images: [],
       priceSingle: 0,
       priceBulk: 0,
       bulkMinQty: 0,
@@ -80,7 +80,8 @@ export default function Admin() {
   const onSubmit = (data: FormValues) => {
     const payload = {
       ...data,
-      imageUrl: data.imageUrl || undefined,
+      images: data.images && data.images.length > 0 ? data.images : undefined,
+      imageUrl: undefined,
       bulkMinQty: data.bulkMinQty || undefined,
     };
     addProduct(payload);
@@ -249,12 +250,12 @@ export default function Admin() {
                   />
                   <FormField
                     control={form.control}
-                    name="imageUrl"
+                    name="images"
                     render={({ field }) => (
                       <FormItem>
                         <FormControl>
-                          <ImageUpload
-                            value={field.value ?? ""}
+                          <MultiImageUpload
+                            values={field.value ?? []}
                             onChange={field.onChange}
                             label={t("form.imageUrl")}
                           />
@@ -358,12 +359,17 @@ export default function Admin() {
         <div className="space-y-4">
           {products.map((product) => (
             <Card key={product.id} className="rounded-2xl border-2 shadow-sm overflow-hidden flex flex-col sm:flex-row">
-              <div className="sm:w-48 h-48 sm:h-auto bg-muted shrink-0">
-                {product.imageUrl ? (
-                  <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover" />
+              <div className="sm:w-48 h-48 sm:h-auto bg-muted shrink-0 relative">
+                {getFirstImage(product) ? (
+                  <img src={getFirstImage(product)} alt={product.name} className="w-full h-full object-cover" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-muted-foreground text-sm">
                     No Image
+                  </div>
+                )}
+                {(product.images?.length ?? 0) > 1 && (
+                  <div className="absolute bottom-1 right-1 bg-black/60 text-white text-xs font-bold px-1.5 py-0.5 rounded-full">
+                    +{(product.images?.length ?? 1) - 1}
                   </div>
                 )}
               </div>

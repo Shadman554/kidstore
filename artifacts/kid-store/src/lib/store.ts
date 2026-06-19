@@ -4,12 +4,18 @@ export interface Product {
   id: string;
   name: string;
   imageUrl?: string;
+  images?: string[];
   description?: string;
   priceSingle: number;
   priceBulk: number;
   bulkMinQty?: number;
   currency: Currency;
   createdAt: string;
+}
+
+export function getFirstImage(product: Product): string | undefined {
+  if (product.images && product.images.length > 0) return product.images[0];
+  return product.imageUrl;
 }
 
 export function formatPrice(price: number, currency: Currency = "USD"): string {

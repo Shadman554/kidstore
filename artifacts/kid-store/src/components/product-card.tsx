@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { Link } from "wouter";
-import { Product, formatPrice } from "@/lib/store";
+import { Product, formatPrice, getFirstImage } from "@/lib/store";
 import { useI18n } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, ArrowLeft } from "lucide-react";
@@ -32,15 +32,15 @@ export function ProductCard({ product, index }: ProductCardProps) {
         <div className="relative rounded-3xl overflow-hidden shadow-lg active:scale-95 transition-transform duration-150 h-full min-h-[220px]">
           {/* Image or color background */}
           <div className="absolute inset-0" style={{ background: color.bg }}>
-            {product.imageUrl && (
+            {getFirstImage(product) && (
               <img
-                src={product.imageUrl}
+                src={getFirstImage(product)}
                 alt={product.name}
                 className="w-full h-full object-cover"
                 loading="lazy"
               />
             )}
-            {!product.imageUrl && (
+            {!getFirstImage(product) && (
               <div
                 className="w-full h-full flex items-center justify-center text-5xl font-display font-bold opacity-30"
                 style={{ color: color.text }}
@@ -82,9 +82,9 @@ export function ProductCard({ product, index }: ProductCardProps) {
           style={{ background: color.bg }}
         >
           <div className="aspect-[4/3] relative">
-            {product.imageUrl ? (
+            {getFirstImage(product) ? (
               <img
-                src={product.imageUrl}
+                src={getFirstImage(product)}
                 alt={product.name}
                 className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                 loading="lazy"

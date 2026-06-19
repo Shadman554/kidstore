@@ -1,29 +1,38 @@
 import { useRef } from "react";
 import { ImagePlus, X } from "lucide-react";
 
-interface ImageUploadProps {
-  value: string;
-  onChange: (value: string) => void;
+interface MultiImageUploadProps {
+  values: string[];
+  onChange: (values: string[]) => void;
   label?: string;
 }
 
-export function ImageUpload({ value, onChange, label }: ImageUploadProps) {
+export function MultiImageUpload({ values: valuesProp, onChange, label }: MultiImageUploadProps) {
+  const values = Array.isArray(valuesProp) ? valuesProp : [];
   const inputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      onChange(reader.result as string);
-    };
-    reader.readAsDataURL(file);
+    const files = Array.from(e.target.files ?? []);
+    if (!files.length) return;
+    let loaded = 0;
+    const results: string[] = [];
+    files.forEach((file, i) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        results[i] = reader.result as string;
+        loaded++;
+        if (loaded === files.length) {
+          onChange([...values, ...results]);
+        }
+      };
+      reader.readAsDataURL(file);
+    });
     e.target.value = "";
   };
 
-  const handleRemove = (e: React.MouseEvent) => {
+  const handleRemove = (index: number, e: React.MouseEvent) => {
     e.stopPropagation();
-    onChange("");
+    onChange(values.filter((_, i) => i !== index));
   };
 
   return (
@@ -35,42 +44,51 @@ export function ImageUpload({ value, onChange, label }: ImageUploadProps) {
         ref={inputRef}
         type="file"
         accept="image/*"
+        multiple
         className="hidden"
         onChange={handleFileChange}
       />
 
-      {value ? (
-        <div className="relative rounded-2xl overflow-hidden border-2 border-border group cursor-pointer" onClick={() => inputRef.current?.click()}>
-          <img
-            src={value}
-            alt="Product"
-            className="w-full h-48 object-cover"
-          />
-          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-            <span className="text-white text-sm font-bold flex items-center gap-2">
-              <ImagePlus className="w-4 h-4" />
-              Change image
-            </span>
+      <div className="grid grid-cols-3 gap-2">
+        {values.map((src, i) => (
+          <div key={i} className="relative rounded-xl overflow-hidden border-2 border-border aspect-square group">
+            <img src={src} alt={`Image ${i + 1}`} className="w-full h-full object-cover" />
+            <button
+              type="button"
+              onClick={(e) => handleRemove(i, e)}
+              className="absolute top-1 right-1 w-6 h-6 bg-black/60 hover:bg-black/80 text-white rounded-full flex items-center justify-center transition-colors"
+            >
+              <X className="w-3 h-3" />
+            </button>
           </div>
-          <button
-            type="button"
-            onClick={handleRemove}
-            className="absolute top-2 right-2 w-7 h-7 bg-black/60 hover:bg-black/80 text-white rounded-full flex items-center justify-center transition-colors"
-          >
-            <X className="w-3.5 h-3.5" />
-          </button>
-        </div>
-      ) : (
+        ))}
+
         <button
           type="button"
           onClick={() => inputRef.current?.click()}
-          className="w-full h-36 rounded-2xl border-2 border-dashed border-border hover:border-primary hover:bg-primary/5 transition-colors flex flex-col items-center justify-center gap-2 text-muted-foreground hover:text-primary"
+          className="aspect-square rounded-xl border-2 border-dashed border-border hover:border-primary hover:bg-primary/5 transition-colors flex flex-col items-center justify-center gap-1 text-muted-foreground hover:text-primary"
         >
-          <ImagePlus className="w-8 h-8" />
-          <span className="text-sm font-semibold">Click to upload image</span>
-          <span className="text-xs">PNG, JPG, WEBP</span>
+          <ImagePlus className="w-6 h-6" />
+          <span className="text-xs font-semibold">Add</span>
         </button>
-      )}
+      </div>
     </div>
+  );
+}
+
+/* ── legacy single-image shim (kept for any other usage) ── */
+interface ImageUploadProps {
+  value: string;
+  onChange: (value: string) => void;
+  label?: string;
+}
+
+export function ImageUpload({ value, onChange, label }: ImageUploadProps) {
+  return (
+    <MultiImageUpload
+      values={value ? [value] : []}
+      onChange={(vals) => onChange(vals[0] ?? "")}
+      label={label}
+    />
   );
 }

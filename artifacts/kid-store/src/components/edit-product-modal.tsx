@@ -15,7 +15,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { ImageUpload } from "@/components/image-upload";
+import { MultiImageUpload } from "@/components/image-upload";
 import {
   Form,
   FormControl,
@@ -28,7 +28,7 @@ import {
 const formSchema = z.object({
   name: z.string().min(2, "Name is required"),
   description: z.string().optional(),
-  imageUrl: z.string().optional(),
+  images: z.array(z.string()).optional(),
   priceSingle: z.coerce.number().min(0.01),
   priceBulk: z.coerce.number().min(0.01),
   bulkMinQty: z.coerce.number().min(2).optional().or(z.literal(0)),
@@ -53,7 +53,7 @@ export function EditProductModal({ product, isOpen, onClose, onSuccess }: EditPr
     defaultValues: {
       name: "",
       description: "",
-      imageUrl: "",
+      images: [],
       priceSingle: 0,
       priceBulk: 0,
       bulkMinQty: 0,
@@ -65,10 +65,16 @@ export function EditProductModal({ product, isOpen, onClose, onSuccess }: EditPr
 
   useEffect(() => {
     if (isOpen && product) {
+      const existingImages =
+        product.images && product.images.length > 0
+          ? product.images
+          : product.imageUrl
+          ? [product.imageUrl]
+          : [];
       form.reset({
         name: product.name,
         description: product.description || "",
-        imageUrl: product.imageUrl || "",
+        images: existingImages,
         priceSingle: product.priceSingle,
         priceBulk: product.priceBulk,
         bulkMinQty: product.bulkMinQty || 0,
@@ -80,10 +86,11 @@ export function EditProductModal({ product, isOpen, onClose, onSuccess }: EditPr
   const onSubmit = (data: FormValues) => {
     const payload = {
       ...data,
-      imageUrl: data.imageUrl || undefined,
+      images: data.images && data.images.length > 0 ? data.images : undefined,
+      imageUrl: undefined,
       bulkMinQty: data.bulkMinQty || undefined,
     };
-    
+
     updateProduct(product.id, payload);
     onSuccess();
     onClose();
@@ -129,12 +136,12 @@ export function EditProductModal({ product, isOpen, onClose, onSuccess }: EditPr
             />
             <FormField
               control={form.control}
-              name="imageUrl"
+              name="images"
               render={({ field }) => (
                 <FormItem>
                   <FormControl>
-                    <ImageUpload
-                      value={field.value ?? ""}
+                    <MultiImageUpload
+                      values={field.value ?? []}
                       onChange={field.onChange}
                       label={t("form.imageUrl")}
                     />

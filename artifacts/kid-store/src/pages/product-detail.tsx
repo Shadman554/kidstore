@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useRoute, Link } from "wouter";
-import { getProducts, Product, formatPrice } from "@/lib/store";
+import { getProducts, Product, formatPrice, getFirstImage } from "@/lib/store";
 import { useI18n } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, ArrowRight, Package, Tag, ShoppingBag, ChevronLeft, ChevronRight } from "lucide-react";
@@ -29,29 +29,28 @@ export default function ProductDetail() {
   const [product, setProduct] = useState<Product | null>(null);
   const [productIndex, setProductIndex] = useState(0);
   const [related, setRelated] = useState<Product[]>([]);
+  const [activeImg, setActiveImg] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!id) return;
     window.scrollTo(0, 0);
     setLoading(true);
-    const timer = setTimeout(() => {
-      const allProducts = getProducts();
-      const idx = allProducts.findIndex((p) => p.id === id);
-      const found = allProducts[idx] ?? null;
-      setProduct(found);
-      setProductIndex(idx >= 0 ? idx : 0);
-      if (found) {
-        const others = allProducts.filter((p) => p.id !== id);
-        for (let i = others.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
-          [others[i], others[j]] = [others[j], others[i]];
-        }
-        setRelated(others.slice(0, 4));
+    setActiveImg(0);
+    const allProducts = getProducts();
+    const idx = allProducts.findIndex((p) => p.id === id);
+    const found = allProducts[idx] ?? null;
+    setProduct(found);
+    setProductIndex(idx >= 0 ? idx : 0);
+    if (found) {
+      const others = allProducts.filter((p) => p.id !== id);
+      for (let i = others.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [others[i], others[j]] = [others[j], others[i]];
       }
-      setLoading(false);
-    }, 500);
-    return () => clearTimeout(timer);
+      setRelated(others.slice(0, 4));
+    }
+    setLoading(false);
   }, [id]);
 
   if (loading) {
@@ -72,6 +71,12 @@ export default function ProductDetail() {
   }
 
   const color = CARD_COLORS[productIndex % 3];
+  const allImages = product.images && product.images.length > 0
+    ? product.images
+    : product.imageUrl
+    ? [product.imageUrl]
+    : [];
+  const currentImg = allImages[activeImg] ?? null;
 
   return (
     <>
@@ -81,9 +86,9 @@ export default function ProductDetail() {
       <div className="md:hidden min-h-screen flex flex-col">
         {/* Full-bleed image hero */}
         <div className="relative w-full" style={{ height: "52vw", minHeight: 220, maxHeight: 340, background: color.bg }}>
-          {product.imageUrl ? (
+          {currentImg ? (
             <img
-              src={product.imageUrl}
+              src={currentImg}
               alt={product.name}
               className="w-full h-full object-cover"
             />
@@ -94,6 +99,18 @@ export default function ProductDetail() {
           )}
           {/* Gradient fade into page */}
           <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-background to-transparent" />
+          {/* Image dots when multiple */}
+          {allImages.length > 1 && (
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
+              {allImages.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => setActiveImg(i)}
+                  className={`w-2 h-2 rounded-full transition-all ${i === activeImg ? "w-5 bg-white" : "bg-white/50"}`}
+                />
+              ))}
+            </div>
+          )}
           {/* Floating back button */}
           <Link href="/" className="absolute top-4 left-4 rtl:right-4 rtl:left-auto">
             <button
@@ -196,15 +213,30 @@ export default function ProductDetail() {
         </Link>
 
         <div className="grid md:grid-cols-2 gap-8 lg:gap-12 mb-16">
-          <div
-            className="rounded-3xl overflow-hidden shadow-sm aspect-square max-h-[600px] flex items-center justify-center"
-            style={{ background: color.bg }}
-          >
-            {product.imageUrl ? (
-              <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover" />
-            ) : (
-              <div className="flex flex-col items-center gap-4 opacity-30">
-                <Package className="w-24 h-24" style={{ color: color.text }} />
+          <div className="flex flex-col gap-3">
+            <div
+              className="rounded-3xl overflow-hidden shadow-sm aspect-square max-h-[520px] flex items-center justify-center"
+              style={{ background: color.bg }}
+            >
+              {currentImg ? (
+                <img src={currentImg} alt={product.name} className="w-full h-full object-cover" />
+              ) : (
+                <div className="flex flex-col items-center gap-4 opacity-30">
+                  <Package className="w-24 h-24" style={{ color: color.text }} />
+                </div>
+              )}
+            </div>
+            {allImages.length > 1 && (
+              <div className="flex gap-2 overflow-x-auto pb-1">
+                {allImages.map((img, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setActiveImg(i)}
+                    className={`shrink-0 w-16 h-16 rounded-xl overflow-hidden border-2 transition-all ${i === activeImg ? "border-foreground shadow-md scale-105" : "border-border opacity-60 hover:opacity-100"}`}
+                  >
+                    <img src={img} alt={`${product.name} ${i + 1}`} className="w-full h-full object-cover" />
+                  </button>
+                ))}
               </div>
             )}
           </div>
