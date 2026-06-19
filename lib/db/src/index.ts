@@ -9,12 +9,32 @@ let _db: ReturnType<typeof drizzle<typeof schema>> | null = null;
 
 function getPool(): InstanceType<typeof Pool> {
   if (!_pool) {
-    if (!process.env.DATABASE_URL) {
+    const rawUrl = process.env.DATABASE_URL ?? "";
+
+    // Strip surrounding quotes in case the value was pasted in .env format
+    const url = rawUrl.replace(/^["']|["']$/g, "").trim();
+
+    // Check if it looks like a valid postgres URL
+    const isValidUrl = url.startsWith("postgres://") || url.startsWith("postgresql://");
+
+    if (!isValidUrl && !process.env.PGHOST) {
       throw new Error(
-        "DATABASE_URL must be set. Did you forget to provision a database?",
+        "DATABASE_URL must be set to a valid PostgreSQL connection string. " +
+        `Got: "${url.slice(0, 30)}...". Did you forget to provision a database?`,
       );
     }
-    _pool = new Pool({ connectionString: process.env.DATABASE_URL });
+
+    const sslDisabled =
+      url.includes("sslmode=disable") ||
+      url.includes("localhost") ||
+      url.includes("127.0.0.1") ||
+      !!process.env.PGHOST?.match(/^(localhost|127\.0\.0\.1)$/);
+
+    _pool = new Pool(
+      isValidUrl
+        ? { connectionString: url, ssl: sslDisabled ? false : { rejectUnauthorized: false } }
+        : { ssl: sslDisabled ? false : { rejectUnauthorized: false } },
+    );
   }
   return _pool;
 }

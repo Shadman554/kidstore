@@ -79305,12 +79305,18 @@ var _pool = null;
 var _db = null;
 function getPool() {
   if (!_pool) {
-    if (!process.env.DATABASE_URL) {
+    const rawUrl = process.env.DATABASE_URL ?? "";
+    const url2 = rawUrl.replace(/^["']|["']$/g, "").trim();
+    const isValidUrl = url2.startsWith("postgres://") || url2.startsWith("postgresql://");
+    if (!isValidUrl && !process.env.PGHOST) {
       throw new Error(
-        "DATABASE_URL must be set. Did you forget to provision a database?"
+        `DATABASE_URL must be set to a valid PostgreSQL connection string. Got: "${url2.slice(0, 30)}...". Did you forget to provision a database?`
       );
     }
-    _pool = new Pool3({ connectionString: process.env.DATABASE_URL });
+    const sslDisabled = url2.includes("sslmode=disable") || url2.includes("localhost") || url2.includes("127.0.0.1") || !!process.env.PGHOST?.match(/^(localhost|127\.0\.0\.1)$/);
+    _pool = new Pool3(
+      isValidUrl ? { connectionString: url2, ssl: sslDisabled ? false : { rejectUnauthorized: false } } : { ssl: sslDisabled ? false : { rejectUnauthorized: false } }
+    );
   }
   return _pool;
 }
@@ -79597,7 +79603,13 @@ var app_default = app;
 
 // src/lib/migrate.ts
 async function runMigrations() {
-  logger.info("Running database migrations...");
+  const url2 = process.env.DATABASE_URL ?? "";
+  let host = "(unknown)";
+  try {
+    host = new URL(url2).hostname;
+  } catch {
+  }
+  logger.info({ host }, "Running database migrations...");
   const client = await pool.connect();
   try {
     await client.query(`
@@ -79623,7 +79635,7 @@ async function runMigrations() {
     `);
     logger.info("Database migrations complete.");
   } catch (err) {
-    logger.error({ err }, "Database migration failed");
+    logger.error({ err }, "Database migration failed \u2014 check DATABASE_URL is correctly set in Railway Variables");
     throw err;
   } finally {
     client.release();

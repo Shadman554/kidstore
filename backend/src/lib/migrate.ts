@@ -2,7 +2,13 @@ import { pool } from "@workspace/db";
 import { logger } from "./logger";
 
 export async function runMigrations(): Promise<void> {
-  logger.info("Running database migrations...");
+  const url = process.env.DATABASE_URL ?? "";
+  let host = "(unknown)";
+  try {
+    host = new URL(url).hostname;
+  } catch {}
+
+  logger.info({ host }, "Running database migrations...");
 
   const client = await pool.connect();
   try {
@@ -29,7 +35,7 @@ export async function runMigrations(): Promise<void> {
     `);
     logger.info("Database migrations complete.");
   } catch (err) {
-    logger.error({ err }, "Database migration failed");
+    logger.error({ err }, "Database migration failed — check DATABASE_URL is correctly set in Railway Variables");
     throw err;
   } finally {
     client.release();
