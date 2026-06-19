@@ -1,5 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from "react";
-import { getProducts, Product, formatPrice } from "@/lib/store";
+import { useQuery } from "@tanstack/react-query";
+import { fetchProducts } from "@/lib/api";
+import { Product, formatPrice } from "@/lib/store";
 import { useI18n } from "@/lib/i18n";
 import { ProductCard } from "@/components/product-card";
 import { SkeletonCard } from "@/components/skeleton-card";
@@ -83,7 +85,11 @@ function matchesQuery(product: Product, queryTokens: string[]): boolean {
 export default function Catalog() {
   const { t, isRtl, lang } = useI18n();
   const { settings } = useSiteSettings();
-  const [products] = useState<Product[]>(() => getProducts());
+  const { data: products = [], isLoading } = useQuery({
+    queryKey: ["products"],
+    queryFn: fetchProducts,
+    staleTime: 30_000,
+  });
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [showFilters, setShowFilters] = useState(false);
@@ -443,7 +449,11 @@ export default function Catalog() {
         </div>
 
         <div className="px-4 pb-4">
-          {filteredProducts.length === 0 ? (
+          {isLoading ? (
+            <div className="grid grid-cols-2 gap-3">
+              {Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)}
+            </div>
+          ) : filteredProducts.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20 text-center">
               <div
                 className="p-5 rounded-full mb-4"
@@ -664,7 +674,11 @@ export default function Catalog() {
             </p>
           )}
 
-          {filteredProducts.length === 0 ? (
+          {isLoading ? (
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+              {Array.from({ length: 8 }).map((_, i) => <SkeletonCard key={i} />)}
+            </div>
+          ) : filteredProducts.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-24 px-4 text-center bg-white dark:bg-card rounded-3xl border-2 border-dashed border-border">
               <div
                 className="p-5 rounded-full mb-4"

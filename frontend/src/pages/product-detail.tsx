@@ -1,6 +1,8 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRoute, Link } from "wouter";
-import { getProducts, Product, formatPrice, getFirstImage } from "@/lib/store";
+import { useQuery } from "@tanstack/react-query";
+import { fetchProducts } from "@/lib/api";
+import { Product, formatPrice, getFirstImage } from "@/lib/store";
 import { useI18n } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, ArrowRight, Package, Tag, ShoppingBag, ChevronLeft, ChevronRight, Hash } from "lucide-react";
@@ -23,34 +25,22 @@ export default function ProductDetail() {
   const { t, isRtl } = useI18n();
   const { cardColors } = useSiteSettings();
 
-  const [product, setProduct] = useState<Product | null>(null);
-  const [productIndex, setProductIndex] = useState(0);
-  const [related, setRelated] = useState<Product[]>([]);
   const [activeImg, setActiveImg] = useState(0);
-  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (!id) return;
-    window.scrollTo(0, 0);
-    setLoading(true);
-    setActiveImg(0);
-    const allProducts = getProducts();
-    const idx = allProducts.findIndex((p) => p.id === id);
-    const found = allProducts[idx] ?? null;
-    setProduct(found);
-    setProductIndex(idx >= 0 ? idx : 0);
-    if (found) {
-      const others = allProducts.filter((p) => p.id !== id);
-      for (let i = others.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [others[i], others[j]] = [others[j], others[i]];
-      }
-      setRelated(others.slice(0, 4));
-    }
-    setLoading(false);
-  }, [id]);
+  const { data: allProducts = [], isLoading } = useQuery({
+    queryKey: ["products"],
+    queryFn: fetchProducts,
+    staleTime: 30_000,
+  });
 
-  if (loading) {
+  const productIndex = Math.max(0, allProducts.findIndex((p) => p.id === id));
+  const product: Product | null = allProducts[productIndex] ?? null;
+  const related = allProducts
+    .filter((p) => p.id !== id)
+    .sort(() => Math.random() - 0.5)
+    .slice(0, 4);
+
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin" />

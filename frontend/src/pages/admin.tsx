@@ -1,8 +1,10 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { getProducts, addProduct, deleteProduct, formatPrice, getFirstImage, Product } from "@/lib/store";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { fetchProducts, createProduct, deleteProduct } from "@/lib/api";
+import { formatPrice, getFirstImage, Product } from "@/lib/store";
 import { getWhatsAppNumber, setWhatsAppNumber, isWhatsAppEnabled } from "@/lib/config";
 import { useI18n } from "@/lib/i18n";
 import { useToast } from "@/hooks/use-toast";
@@ -50,7 +52,12 @@ type FormValues = z.infer<typeof formSchema>;
 export default function Admin() {
   const { t } = useI18n();
   const { toast } = useToast();
-  const [products, setProducts] = useState<Product[]>([]);
+  const queryClient = useQueryClient();
+  const { data: products = [] } = useQuery({
+    queryKey: ["products"],
+    queryFn: fetchProducts,
+    staleTime: 0,
+  });
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [whatsappInput, setWhatsappInput] = useState(() => getWhatsAppNumber());
   const [whatsappSaved, setWhatsappSaved] = useState(false);
@@ -61,13 +68,28 @@ export default function Admin() {
 
   const ADMIN_PAGE_SIZE = 5;
 
-  const loadProducts = () => {
-    setProducts(getProducts());
-  };
+  const addMutation = useMutation({
+    mutationFn: createProduct,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+      form.reset();
+      toast({ title: t("toast.added"), variant: "default" });
+    },
+    onError: (err: Error) => {
+      toast({ title: err.message, variant: "destructive" });
+    },
+  });
 
-  useEffect(() => {
-    loadProducts();
-  }, []);
+  const deleteMutation = useMutation({
+    mutationFn: deleteProduct,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+      toast({ title: t("toast.deleted"), variant: "destructive" });
+    },
+    onError: (err: Error) => {
+      toast({ title: err.message, variant: "destructive" });
+    },
+  });
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -85,28 +107,16 @@ export default function Admin() {
   const selectedCurrency = form.watch("currency");
 
   const onSubmit = (data: FormValues) => {
-    const payload = {
+    addMutation.mutate({
       ...data,
       images: data.images && data.images.length > 0 ? data.images : undefined,
       imageUrl: undefined,
       bulkMinQty: data.bulkMinQty || undefined,
-    };
-    addProduct(payload);
-    loadProducts();
-    form.reset();
-    toast({
-      title: t("toast.added"),
-      variant: "default",
     });
   };
 
   const handleDelete = (id: string) => {
-    deleteProduct(id);
-    loadProducts();
-    toast({
-      title: t("toast.deleted"),
-      variant: "destructive",
-    });
+    deleteMutation.mutate(id);
   };
 
   const usdProducts = products.filter((p) => (p.currency ?? "USD") === "USD");
@@ -573,7 +583,7 @@ export default function Admin() {
           product={editingProduct} 
           isOpen={!!editingProduct} 
           onClose={() => setEditingProduct(null)} 
-          onSuccess={loadProducts}
+          onSuccess={() => {}}
         />
       )}
 

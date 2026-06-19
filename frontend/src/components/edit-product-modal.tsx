@@ -2,7 +2,9 @@ import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Product, updateProduct } from "@/lib/store";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { Product } from "@/lib/store";
+import { updateProduct } from "@/lib/api";
 import { useI18n } from "@/lib/i18n";
 import { useToast } from "@/hooks/use-toast";
 
@@ -47,6 +49,7 @@ interface EditProductModalProps {
 export function EditProductModal({ product, isOpen, onClose, onSuccess }: EditProductModalProps) {
   const { t } = useI18n();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -83,21 +86,31 @@ export function EditProductModal({ product, isOpen, onClose, onSuccess }: EditPr
     }
   }, [isOpen, product, form]);
 
-  const onSubmit = (data: FormValues) => {
-    const payload = {
-      ...data,
-      images: data.images && data.images.length > 0 ? data.images : undefined,
-      imageUrl: undefined,
-      bulkMinQty: data.bulkMinQty || undefined,
-    };
+  const updateMutation = useMutation({
+    mutationFn: (data: FormValues) =>
+      updateProduct(product.id, {
+        name: data.name,
+        description: data.description || undefined,
+        images: data.images && data.images.length > 0 ? data.images : undefined,
+        imageUrl: undefined,
+        priceSingle: data.priceSingle,
+        priceBulk: data.priceBulk,
+        bulkMinQty: data.bulkMinQty || undefined,
+        currency: data.currency,
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+      onSuccess();
+      onClose();
+      toast({ title: t("toast.updated"), variant: "default" });
+    },
+    onError: (err: Error) => {
+      toast({ title: err.message, variant: "destructive" });
+    },
+  });
 
-    updateProduct(product.id, payload);
-    onSuccess();
-    onClose();
-    toast({
-      title: t("toast.updated"),
-      variant: "default",
-    });
+  const onSubmit = (data: FormValues) => {
+    updateMutation.mutate(data);
   };
 
   return (
@@ -234,8 +247,13 @@ export function EditProductModal({ product, isOpen, onClose, onSuccess }: EditPr
                 </FormItem>
               )}
             />
-            <Button type="submit" className="w-full rounded-xl font-bold mt-4" data-testid="btn-submit-edit">
-              {t("form.save")}
+            <Button
+              type="submit"
+              className="w-full rounded-xl font-bold mt-4"
+              disabled={updateMutation.isPending}
+              data-testid="btn-submit-edit"
+            >
+              {updateMutation.isPending ? t("form.saving") || "Saving…" : t("form.save")}
             </Button>
           </form>
         </Form>
