@@ -107,17 +107,36 @@ export default function ProductDetail() {
           )}
           {/* Gradient fade into page */}
           <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-background to-transparent" />
-          {/* Image dots when multiple */}
+          {/* Image navigation arrows + dots when multiple */}
           {allImages.length > 1 && (
-            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
-              {allImages.map((_, i) => (
-                <button
-                  key={i}
-                  onClick={() => setActiveImg(i)}
-                  className={`w-2 h-2 rounded-full transition-all ${i === activeImg ? "w-5 bg-white" : "bg-white/50"}`}
-                />
-              ))}
-            </div>
+            <>
+              {/* Prev arrow */}
+              <button
+                onClick={() => setActiveImg((activeImg - 1 + allImages.length) % allImages.length)}
+                className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/85 dark:bg-card/85 backdrop-blur-sm flex items-center justify-center shadow-md z-10"
+                aria-label="Previous image"
+              >
+                <ChevronLeft className="h-5 w-5 text-foreground" />
+              </button>
+              {/* Next arrow */}
+              <button
+                onClick={() => setActiveImg((activeImg + 1) % allImages.length)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/85 dark:bg-card/85 backdrop-blur-sm flex items-center justify-center shadow-md z-10"
+                aria-label="Next image"
+              >
+                <ChevronRight className="h-5 w-5 text-foreground" />
+              </button>
+              {/* Dots */}
+              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
+                {allImages.map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setActiveImg(i)}
+                    className={`h-2 rounded-full transition-all ${i === activeImg ? "w-5 bg-white" : "w-2 bg-white/50"}`}
+                  />
+                ))}
+              </div>
+            </>
           )}
           {/* Floating back button */}
           <Link href="/" className="absolute top-4 left-4 rtl:right-4 rtl:left-auto">
@@ -138,7 +157,7 @@ export default function ProductDetail() {
         </div>
 
         {/* Scrollable content */}
-        <div className="flex-1 px-5 pt-4 pb-28">
+        <div className={`flex-1 px-5 pt-4 ${settings?.whatsappEnabled ? "pb-28" : "pb-6"}`}>
           <h1 className="font-display text-2xl font-bold text-foreground leading-tight mb-2">
             {product.name}
           </h1>
@@ -190,19 +209,19 @@ export default function ProductDetail() {
           )}
         </div>
 
-        {/* Sticky bottom action bar */}
-        <div className="fixed bottom-16 left-0 right-0 z-40 px-5 pb-3 pt-3 bg-background/95 backdrop-blur-sm border-t border-border">
-          <div className="flex items-center gap-3">
-            <div className="flex-1">
-              <div className="text-xs text-muted-foreground font-semibold">{t("product.singlePrice")}</div>
-              <div
-                className="font-display font-bold text-2xl leading-none"
-                style={{ color: colorForText(color.bg) }}
-              >
-                {formatPrice(product.priceSingle, product.currency ?? "USD")}
+        {/* Sticky bottom action bar — only shown when WhatsApp is enabled */}
+        {settings?.whatsappEnabled && (
+          <div className="fixed bottom-16 left-0 right-0 z-40 px-5 pb-3 pt-3 bg-background/95 backdrop-blur-sm border-t border-border">
+            <div className="flex items-center gap-3">
+              <div className="flex-1">
+                <div className="text-xs text-muted-foreground font-semibold">{t("product.singlePrice")}</div>
+                <div
+                  className="font-display font-bold text-2xl leading-none"
+                  style={{ color: colorForText(color.bg) }}
+                >
+                  {formatPrice(product.priceSingle, product.currency ?? "USD")}
+                </div>
               </div>
-            </div>
-            {settings?.whatsappEnabled && (
               <Button
                 size="lg"
                 onClick={() => openWhatsApp(product, whatsappNumber, lang, product.currency ?? "USD")}
@@ -213,9 +232,9 @@ export default function ProductDetail() {
                 <ShoppingBag className="w-5 h-5" />
                 {t("product.orderWhatsApp")}
               </Button>
-            )}
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* ════════════════════════════════
