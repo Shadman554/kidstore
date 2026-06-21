@@ -55,14 +55,14 @@ export function MobileHeader() {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align={isRtl ? "start" : "end"} className="rounded-2xl font-sans font-semibold border-2">
+            <DropdownMenuItem onClick={() => setLang("KU")} className={`rounded-xl flex items-center gap-2 ${lang === "KU" ? "font-bold" : ""}`} style={lang === "KU" ? { background: `${settings.color3}33` } : {}}>
+              <FlagIcon lang="KU" size={18} /> کوردی
+            </DropdownMenuItem>
             <DropdownMenuItem onClick={() => setLang("EN")} className={`rounded-xl flex items-center gap-2 ${lang === "EN" ? "font-bold" : ""}`} style={lang === "EN" ? { background: `${settings.color1}33` } : {}}>
               <FlagIcon lang="EN" size={18} /> English
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => setLang("AR")} className={`rounded-xl flex items-center gap-2 ${lang === "AR" ? "font-bold" : ""}`} style={lang === "AR" ? { background: `${settings.color2}33` } : {}}>
               <FlagIcon lang="AR" size={18} /> العربية
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setLang("KU")} className={`rounded-xl flex items-center gap-2 ${lang === "KU" ? "font-bold" : ""}`} style={lang === "KU" ? { background: `${settings.color3}33` } : {}}>
-              <FlagIcon lang="KU" size={18} /> کوردی
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
