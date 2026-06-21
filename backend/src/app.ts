@@ -40,8 +40,8 @@ app.use(
       if (!origin) return callback(null, true);
       if (
         allowedOrigins.some((o) => origin === o) ||
-        /^https?:\/\/[^/]+\.replit\.dev$/.test(origin) ||
-        /^https?:\/\/[^/]+\.repl\.co$/.test(origin) ||
+        /^https?:\/\/[^/]+\.replit\.dev(:\d+)?$/.test(origin) ||
+        /^https?:\/\/[^/]+\.repl\.co(:\d+)?$/.test(origin) ||
         /^https?:\/\/[^/]+\.railway\.app$/.test(origin) ||
         /^https?:\/\/[^/]+\.up\.railway\.app$/.test(origin) ||
         origin.startsWith("http://localhost:") ||

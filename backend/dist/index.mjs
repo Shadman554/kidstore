@@ -81414,7 +81414,7 @@ app.use(
   (0, import_cors.default)({
     origin(origin, callback) {
       if (!origin) return callback(null, true);
-      if (allowedOrigins.some((o) => origin === o) || /^https?:\/\/[^/]+\.replit\.dev$/.test(origin) || /^https?:\/\/[^/]+\.repl\.co$/.test(origin) || /^https?:\/\/[^/]+\.railway\.app$/.test(origin) || /^https?:\/\/[^/]+\.up\.railway\.app$/.test(origin) || origin.startsWith("http://localhost:") || origin.startsWith("http://127.0.0.1:")) {
+      if (allowedOrigins.some((o) => origin === o) || /^https?:\/\/[^/]+\.replit\.dev(:\d+)?$/.test(origin) || /^https?:\/\/[^/]+\.repl\.co(:\d+)?$/.test(origin) || /^https?:\/\/[^/]+\.railway\.app$/.test(origin) || /^https?:\/\/[^/]+\.up\.railway\.app$/.test(origin) || origin.startsWith("http://localhost:") || origin.startsWith("http://127.0.0.1:")) {
         return callback(null, true);
       }
       return callback(new Error(`CORS: origin '${origin}' not allowed`));
