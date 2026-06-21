@@ -1,4 +1,4 @@
-import { pgTable, text, doublePrecision, integer, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, text, doublePrecision, integer, timestamp, boolean } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 
@@ -30,3 +30,14 @@ export const siteSettingsTable = pgTable("site_settings", {
   value: text("value").notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
+
+export const adminLoginLogsTable = pgTable("admin_login_logs", {
+  id: text("id").primaryKey(),
+  timestamp: timestamp("timestamp").defaultNow().notNull(),
+  success: boolean("success").notNull(),
+  ip: text("ip"),
+  userAgent: text("user_agent"),
+  reason: text("reason"),
+});
+
+export type AdminLoginLog = typeof adminLoginLogsTable.$inferSelect;

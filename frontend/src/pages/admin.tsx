@@ -1,10 +1,12 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { fetchProducts, createProduct, deleteProduct, fetchSettings, updateWhatsAppNumber, changeAdminPin } from "@/lib/api";
+import { fetchProducts, createProduct, deleteProduct, fetchSettings, updateWhatsAppNumber, changeAdminPin, fetchLoginLogs } from "@/lib/api";
+import type { LoginLog } from "@/lib/api";
 import { clearAdminSession } from "@/lib/admin-auth";
+import { useInactivityLogout } from "@/hooks/use-inactivity-logout";
 import { formatPrice, getFirstImage, Product } from "@/lib/store";
 
 import { useI18n } from "@/lib/i18n";
@@ -88,11 +90,43 @@ export default function Admin() {
   const [pinLoading, setPinLoading] = useState(false);
   const [pinError, setPinError] = useState("");
   const [pinSuccess, setPinSuccess] = useState(false);
+  const [showLoginLogs, setShowLoginLogs] = useState(false);
+
+  const handleInactivityLogout = useCallback(() => {
+    toast({ title: t("admin.inactivityLogout"), variant: "destructive" });
+    setTimeout(() => window.location.reload(), 1200);
+  }, [toast, t]);
+
+  useInactivityLogout(handleInactivityLogout);
+
+  const { data: loginLogs = [], refetch: refetchLogs } = useQuery<LoginLog[]>({
+    queryKey: ["loginLogs"],
+    queryFn: fetchLoginLogs,
+    enabled: showLoginLogs,
+  });
+
+  function getPinStrength(pin: string): { level: 0 | 1 | 2 | 3; label: string; color: string } {
+    if (pin.length < 6) return { level: 0, label: "", color: "" };
+    const hasLetter = /[a-zA-Z]/.test(pin);
+    const hasNumber = /[0-9]/.test(pin);
+    const hasSpecial = /[^a-zA-Z0-9]/.test(pin);
+    const longEnough = pin.length >= 10;
+    const score = (hasLetter ? 1 : 0) + (hasNumber ? 1 : 0) + (hasSpecial ? 1 : 0) + (longEnough ? 1 : 0);
+    if (score <= 1) return { level: 1, label: t("admin.pinStrength.weak"), color: "bg-red-400" };
+    if (score <= 2) return { level: 2, label: t("admin.pinStrength.fair"), color: "bg-yellow-400" };
+    return { level: 3, label: t("admin.pinStrength.strong"), color: "bg-green-500" };
+  }
+
+  const pinStrength = getPinStrength(pinNewVal);
 
   const handleChangePin = async () => {
     setPinError("");
-    if (pinNewVal.length < 4) {
+    if (pinNewVal.length < 6) {
       setPinError(t("admin.pinTooShort"));
+      return;
+    }
+    if (!/[a-zA-Z]/.test(pinNewVal) || !/[0-9]/.test(pinNewVal)) {
+      setPinError(t("admin.pinComplexity"));
       return;
     }
     if (pinNewVal !== pinConfirmVal) {
@@ -333,17 +367,28 @@ export default function Admin() {
       {/* Security / Change PIN */}
       <Card className="rounded-3xl border-2 shadow-sm mb-8">
         <CardContent className="p-6">
-          <div className="flex items-center gap-3 mb-5">
-            <div className="p-3 bg-primary/10 rounded-2xl">
-              <KeyRound className="w-6 h-6 text-primary" />
+          <div className="flex items-center justify-between gap-3 mb-5">
+            <div className="flex items-center gap-3">
+              <div className="p-3 bg-primary/10 rounded-2xl">
+                <KeyRound className="w-6 h-6 text-primary" />
+              </div>
+              <div>
+                <div className="font-bold text-base">{t("admin.security")}</div>
+                <div className="text-xs text-muted-foreground">{t("admin.changePin")}</div>
+              </div>
             </div>
-            <div>
-              <div className="font-bold text-base">{t("admin.security")}</div>
-              <div className="text-xs text-muted-foreground">{t("admin.changePin")}</div>
-            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              className="rounded-xl text-xs gap-1.5"
+              onClick={() => { setShowLoginLogs((v) => !v); if (!showLoginLogs) refetchLogs(); }}
+            >
+              <LogOut className="w-3.5 h-3.5" />
+              {t("admin.loginLogs")}
+            </Button>
           </div>
 
-          <div className="grid sm:grid-cols-3 gap-3 mb-4">
+          <div className="grid sm:grid-cols-3 gap-3 mb-3">
             {/* Current PIN */}
             <div className="space-y-1.5">
               <label className="text-xs font-bold text-muted-foreground uppercase tracking-wide">
@@ -421,6 +466,28 @@ export default function Admin() {
             </div>
           </div>
 
+          {/* Password strength meter */}
+          {pinNewVal.length > 0 && (
+            <div className="mb-3">
+              <div className="flex gap-1 mb-1">
+                {[1, 2, 3].map((level) => (
+                  <div
+                    key={level}
+                    className={`h-1.5 flex-1 rounded-full transition-colors duration-300 ${
+                      pinStrength.level >= level ? pinStrength.color : "bg-muted"
+                    }`}
+                  />
+                ))}
+              </div>
+              {pinStrength.label && (
+                <p className={`text-xs font-semibold ${
+                  pinStrength.level === 1 ? "text-red-500" :
+                  pinStrength.level === 2 ? "text-yellow-600" : "text-green-600"
+                }`}>{pinStrength.label}</p>
+              )}
+            </div>
+          )}
+
           {pinError && (
             <p className="text-red-500 text-sm font-semibold mb-3">{pinError}</p>
           )}
@@ -430,7 +497,7 @@ export default function Admin() {
             </p>
           )}
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 mb-5">
             <Button
               onClick={handleChangePin}
               disabled={!pinCurrentVal || !pinNewVal || !pinConfirmVal || pinLoading || pinSuccess}
@@ -451,6 +518,42 @@ export default function Admin() {
               )}
             </Button>
           </div>
+
+          {/* Login activity log */}
+          {showLoginLogs && (
+            <div className="border-t pt-4">
+              <p className="text-xs font-bold text-muted-foreground uppercase tracking-wide mb-3">
+                {t("admin.loginLogs")}
+              </p>
+              {loginLogs.length === 0 ? (
+                <p className="text-sm text-muted-foreground">{t("admin.loginLogs.empty")}</p>
+              ) : (
+                <div className="space-y-2">
+                  {loginLogs.map((log) => (
+                    <div
+                      key={log.id}
+                      className={`flex items-center justify-between rounded-xl px-3 py-2 text-sm ${
+                        log.success
+                          ? "bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800"
+                          : "bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className={`w-2 h-2 rounded-full shrink-0 ${log.success ? "bg-green-500" : "bg-red-500"}`} />
+                        <span className={`font-semibold ${log.success ? "text-green-700 dark:text-green-400" : "text-red-700 dark:text-red-400"}`}>
+                          {log.success ? t("admin.loginLogs.success") : t("admin.loginLogs.failed")}
+                        </span>
+                        {log.ip && <span className="text-muted-foreground font-mono text-xs">· {log.ip}</span>}
+                      </div>
+                      <span className="text-muted-foreground text-xs shrink-0">
+                        {new Date(log.timestamp).toLocaleString()}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </CardContent>
       </Card>
 

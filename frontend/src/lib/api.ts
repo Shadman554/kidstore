@@ -110,3 +110,18 @@ export async function changeAdminPin(currentPin: string, newPin: string): Promis
     body: JSON.stringify({ currentPin, newPin }),
   });
 }
+
+export interface LoginLog {
+  id: string;
+  timestamp: string;
+  success: boolean;
+  ip: string | null;
+  userAgent: string | null;
+  reason: string | null;
+}
+
+export async function fetchLoginLogs(): Promise<LoginLog[]> {
+  return apiFetch<LoginLog[]>("/admin/login-logs", {
+    headers: adminHeaders(),
+  });
+}
