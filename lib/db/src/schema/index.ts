@@ -13,11 +13,13 @@ export const productsTable = pgTable("products", {
   priceBulk: doublePrecision("price_bulk").notNull().default(0),
   bulkMinQty: integer("bulk_min_qty"),
   currency: text("currency").notNull().default("USD"),
+  ageRange: text("age_range"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
 export const insertProductSchema = createInsertSchema(productsTable, {
   currency: z.enum(["USD", "IQD"]),
+  ageRange: z.enum(["0-3", "3-5", "5+"]).nullable().optional(),
 }).omit({ createdAt: true });
 
 export type InsertProduct = typeof productsTable.$inferInsert;

@@ -1,7 +1,8 @@
 import { Link } from "wouter";
 import { useI18n } from "@/lib/i18n";
+import type { Language } from "@/lib/i18n-core";
 import { Button } from "@/components/ui/button";
-import { Globe, Moon, Sun } from "lucide-react";
+import { Moon, Sun } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,6 +13,25 @@ import { useTheme } from "next-themes";
 import WawLogo from "@assets/WAW_logo_1781717964078.svg";
 import { useSecretTap } from "@/hooks/use-secret-tap";
 import { useSiteSettings } from "@/lib/use-site-settings";
+
+function KurdistanFlag({ size }: { size: number }) {
+  const w = Math.round(size * 1.5);
+  return (
+    <svg width={w} height={size} viewBox="0 0 30 20" xmlns="http://www.w3.org/2000/svg" style={{ borderRadius: 2, display: "inline-block", verticalAlign: "middle" }}>
+      <rect width="30" height="6.67" fill="#CE1126"/>
+      <rect y="6.67" width="30" height="6.67" fill="#FFFFFF"/>
+      <rect y="13.33" width="30" height="6.67" fill="#007A3D"/>
+      <circle cx="15" cy="10" r="3.8" fill="#F5D000"/>
+      <circle cx="15" cy="10" r="2.2" fill="#007A3D"/>
+    </svg>
+  );
+}
+
+function FlagIcon({ lang, size = 20 }: { lang: Language; size?: number }) {
+  if (lang === "EN") return <span style={{ fontSize: size * 0.85, lineHeight: 1 }}>🇺🇸</span>;
+  if (lang === "AR") return <span style={{ fontSize: size * 0.85, lineHeight: 1 }}>🇮🇶</span>;
+  return <KurdistanFlag size={size} />;
+}
 
 export function Navbar() {
   const { lang, setLang, t, isRtl } = useI18n();
@@ -35,20 +55,20 @@ export function Navbar() {
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="rounded-full w-9 h-9" style={{ ["--tw-ring-color" as string]: settings.color3 }} data-testid="btn-lang-switcher">
-                <Globe className="h-5 w-5" style={{ color: settings.color3 }} />
+              <Button variant="ghost" size="icon" className="rounded-full w-9 h-9 flex items-center justify-center" style={{ ["--tw-ring-color" as string]: settings.color3 }} data-testid="btn-lang-switcher">
+                <FlagIcon lang={lang} size={20} />
                 <span className="sr-only">Language</span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="rounded-2xl font-sans font-semibold border-2">
-              <DropdownMenuItem onClick={() => setLang("EN")} className={`rounded-xl ${lang === "EN" ? "font-bold" : ""}`} style={lang === "EN" ? { background: `${settings.color1}33` } : {}}>
-                English (EN)
+              <DropdownMenuItem onClick={() => setLang("EN")} className={`rounded-xl flex items-center gap-2 ${lang === "EN" ? "font-bold" : ""}`} style={lang === "EN" ? { background: `${settings.color1}33` } : {}}>
+                <FlagIcon lang="EN" size={18} /> English
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setLang("AR")} className={`rounded-xl ${lang === "AR" ? "font-bold" : ""}`} style={lang === "AR" ? { background: `${settings.color2}33` } : {}}>
-                العربية (AR)
+              <DropdownMenuItem onClick={() => setLang("AR")} className={`rounded-xl flex items-center gap-2 ${lang === "AR" ? "font-bold" : ""}`} style={lang === "AR" ? { background: `${settings.color2}33` } : {}}>
+                <FlagIcon lang="AR" size={18} /> العربية
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setLang("KU")} className={`rounded-xl ${lang === "KU" ? "font-bold" : ""}`} style={lang === "KU" ? { background: `${settings.color3}33` } : {}}>
-                کوردی (KU)
+              <DropdownMenuItem onClick={() => setLang("KU")} className={`rounded-xl flex items-center gap-2 ${lang === "KU" ? "font-bold" : ""}`} style={lang === "KU" ? { background: `${settings.color3}33` } : {}}>
+                <FlagIcon lang="KU" size={18} /> کوردی
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { fetchProducts } from "@/lib/api";
-import { Product, formatPrice } from "@/lib/store";
+import { Product, formatPrice, AgeRange } from "@/lib/store";
 import { useI18n } from "@/lib/i18n";
 import { ProductCard } from "@/components/product-card";
 import { SkeletonCard } from "@/components/skeleton-card";
@@ -97,6 +97,7 @@ export default function Catalog() {
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
   const [currencyFilter, setCurrencyFilter] = useState<CurrencyFilter>("all");
+  const [ageRangeFilter, setAgeRangeFilter] = useState<AgeRange | "all">("all");
   const [showSortMenu, setShowSortMenu] = useState(false);
   const sortMenuRef = useRef<HTMLDivElement>(null);
 
@@ -124,6 +125,7 @@ export default function Catalog() {
       if (!matchesQuery(p, queryTokens)) return false;
       if (currencyFilter !== "all" && p.currency !== currencyFilter)
         return false;
+      if (ageRangeFilter !== "all" && (p.ageRange ?? null) !== ageRangeFilter) return false;
       const min = minPrice !== "" ? parseFloat(minPrice) : null;
       const max = maxPrice !== "" ? parseFloat(maxPrice) : null;
       if (min !== null && !isNaN(min) && p.priceSingle < min) return false;
@@ -152,7 +154,7 @@ export default function Catalog() {
     }
 
     return result;
-  }, [products, queryTokens, sortBy, minPrice, maxPrice, currencyFilter, sortLocale]);
+  }, [products, queryTokens, sortBy, minPrice, maxPrice, currencyFilter, ageRangeFilter, sortLocale]);
 
   const totalPages = Math.ceil(filteredProducts.length / ITEMS_PER_PAGE);
   const paginatedProducts = filteredProducts.slice(
@@ -162,7 +164,7 @@ export default function Catalog() {
 
   useEffect(() => {
     setPage(1);
-  }, [debouncedSearch, sortBy, minPrice, maxPrice, currencyFilter]);
+  }, [debouncedSearch, sortBy, minPrice, maxPrice, currencyFilter, ageRangeFilter]);
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {
@@ -181,13 +183,15 @@ export default function Catalog() {
     sortBy !== "relevant" ||
     minPrice !== "" ||
     maxPrice !== "" ||
-    currencyFilter !== "all";
+    currencyFilter !== "all" ||
+    ageRangeFilter !== "all";
 
   const activeFilterCount = [
     sortBy !== "relevant",
     minPrice !== "",
     maxPrice !== "",
     currencyFilter !== "all",
+    ageRangeFilter !== "all",
   ].filter(Boolean).length;
 
   function clearAllFilters() {
@@ -195,6 +199,7 @@ export default function Catalog() {
     setMinPrice("");
     setMaxPrice("");
     setCurrencyFilter("all");
+    setAgeRangeFilter("all");
   }
 
   const sortOptions: { key: SortOption; label: string }[] = [
@@ -220,7 +225,7 @@ export default function Catalog() {
           transition={{ duration: 0.25, ease: "easeInOut" }}
           className="overflow-hidden"
         >
-          <div className="bg-white dark:bg-card border border-border rounded-2xl p-4 mt-3 shadow-md grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="bg-white dark:bg-card border border-border rounded-2xl p-4 mt-3 shadow-md grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div>
               <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">
                 {t("catalog.sortBy")}
@@ -306,6 +311,36 @@ export default function Catalog() {
                 ))}
               </div>
             </div>
+
+            <div>
+              <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">
+                {t("catalog.ageRange")}
+              </p>
+              <div className="flex gap-2 flex-wrap">
+                {(["all", "0-3", "3-5", "5+"] as const).map((r) => (
+                  <button
+                    key={r}
+                    onClick={() => setAgeRangeFilter(r as AgeRange | "all")}
+                    className={`px-3 py-1.5 rounded-xl text-sm font-bold border-2 transition-all ${
+                      ageRangeFilter === r
+                        ? "border-transparent"
+                        : "border-border bg-background hover:bg-muted"
+                    }`}
+                    style={
+                      ageRangeFilter === r
+                        ? {
+                            background: settings.color3,
+                            color: textOnBg(settings.color3),
+                            borderColor: settings.color3,
+                          }
+                        : {}
+                    }
+                  >
+                    {r === "all" ? t("form.ageRange.any") : t(`catalog.ageRange.${r}`)}
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
         </motion.div>
       )}
@@ -347,6 +382,13 @@ export default function Catalog() {
               label={currencyFilter}
               onRemove={() => setCurrencyFilter("all")}
               color={settings.color2}
+            />
+          )}
+          {ageRangeFilter !== "all" && (
+            <Chip
+              label={t(`catalog.ageRange.${ageRangeFilter}`)}
+              onRemove={() => setAgeRangeFilter("all")}
+              color={settings.color3}
             />
           )}
           <button

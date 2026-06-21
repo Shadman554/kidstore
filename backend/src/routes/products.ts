@@ -79,6 +79,7 @@ router.post("/admin/products", requireAdmin, async (req, res) => {
       priceBulk?: number;
       bulkMinQty?: number;
       currency?: string;
+      ageRange?: string;
     };
 
     if (!body.name || typeof body.priceSingle !== "number") {
@@ -105,6 +106,7 @@ router.post("/admin/products", requireAdmin, async (req, res) => {
         priceBulk: body.priceBulk ?? 0,
         bulkMinQty: body.bulkMinQty ?? null,
         currency: body.currency ?? "USD",
+        ageRange: body.ageRange ?? null,
       })
       .returning();
 
@@ -127,6 +129,7 @@ router.put("/admin/products/:id", requireAdmin, async (req, res) => {
       priceBulk: number;
       bulkMinQty: number;
       currency: string;
+      ageRange: string | null;
     }>;
 
     const updates: Record<string, unknown> = {};
@@ -139,6 +142,7 @@ router.put("/admin/products/:id", requireAdmin, async (req, res) => {
     if (body.priceBulk !== undefined) updates.priceBulk = body.priceBulk;
     if (body.bulkMinQty !== undefined) updates.bulkMinQty = body.bulkMinQty || null;
     if (body.currency !== undefined) updates.currency = body.currency;
+    if ("ageRange" in body) updates.ageRange = body.ageRange ?? null;
 
     const [product] = await db
       .update(productsTable)

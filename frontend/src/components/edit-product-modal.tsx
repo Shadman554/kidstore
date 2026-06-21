@@ -27,6 +27,8 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 
+const AGE_RANGES = ["0-3", "3-5", "5+"] as const;
+
 const formSchema = z.object({
   name: z.string().min(2, "Name is required"),
   description: z.string().optional(),
@@ -35,6 +37,7 @@ const formSchema = z.object({
   priceBulk: z.coerce.number().min(0),
   bulkMinQty: z.coerce.number().min(2).optional().or(z.literal(0)),
   currency: z.enum(["USD", "IQD"]),
+  ageRange: z.enum(["0-3", "3-5", "5+"]).optional().nullable(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -61,6 +64,7 @@ export function EditProductModal({ product, isOpen, onClose, onSuccess }: EditPr
       priceBulk: 0,
       bulkMinQty: 0,
       currency: "USD",
+      ageRange: undefined,
     },
   });
 
@@ -82,6 +86,7 @@ export function EditProductModal({ product, isOpen, onClose, onSuccess }: EditPr
         priceBulk: product.priceBulk,
         bulkMinQty: product.bulkMinQty || 0,
         currency: product.currency ?? "USD",
+        ageRange: product.ageRange ?? undefined,
       });
     }
   }, [isOpen, product, form]);
@@ -97,6 +102,7 @@ export function EditProductModal({ product, isOpen, onClose, onSuccess }: EditPr
         priceBulk: data.priceBulk,
         bulkMinQty: data.bulkMinQty || undefined,
         currency: data.currency,
+        ageRange: data.ageRange ?? null,
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["products"] });
@@ -242,6 +248,41 @@ export function EditProductModal({ product, isOpen, onClose, onSuccess }: EditPr
                   <FormLabel>{t("form.bulkMinQty")}</FormLabel>
                   <FormControl>
                     <Input className="rounded-xl border-2" type="number" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="ageRange"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t("form.ageRange")}</FormLabel>
+                  <FormControl>
+                    <div className="flex rounded-xl border-2 overflow-hidden">
+                      <button
+                        type="button"
+                        onClick={() => field.onChange(null)}
+                        className={`flex-1 py-2 text-xs font-bold transition-colors ${
+                          !field.value ? "bg-primary text-primary-foreground" : "bg-background text-muted-foreground hover:bg-muted"
+                        }`}
+                      >
+                        {t("form.ageRange.any")}
+                      </button>
+                      {AGE_RANGES.map((range) => (
+                        <button
+                          key={range}
+                          type="button"
+                          onClick={() => field.onChange(range)}
+                          className={`flex-1 py-2 text-xs font-bold transition-colors border-l-2 ${
+                            field.value === range ? "bg-primary text-primary-foreground" : "bg-background text-muted-foreground hover:bg-muted"
+                          }`}
+                        >
+                          {t(`form.ageRange.${range}`)}
+                        </button>
+                      ))}
+                    </div>
                   </FormControl>
                   <FormMessage />
                 </FormItem>

@@ -1,5 +1,7 @@
 export type Currency = "USD" | "IQD";
 
+export type AgeRange = "0-3" | "3-5" | "5+";
+
 export interface Product {
   id: string;
   code: string;
@@ -11,6 +13,7 @@ export interface Product {
   priceBulk: number;
   bulkMinQty?: number;
   currency: Currency;
+  ageRange?: AgeRange | null;
   createdAt: string;
 }
 

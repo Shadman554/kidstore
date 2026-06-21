@@ -37,6 +37,9 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 
+const AGE_RANGES = ["0-3", "3-5", "5+"] as const;
+type AgeRangeOption = typeof AGE_RANGES[number];
+
 const formSchema = z.object({
   name: z.string().min(2, "Name is required"),
   description: z.string().optional(),
@@ -45,6 +48,7 @@ const formSchema = z.object({
   priceBulk: z.coerce.number().min(0),
   bulkMinQty: z.coerce.number().min(2).optional().or(z.literal(0)),
   currency: z.enum(["USD", "IQD"]),
+  ageRange: z.enum(["0-3", "3-5", "5+"]).optional().nullable(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -75,6 +79,7 @@ export default function Admin() {
   const [showSettings, setShowSettings] = useState(false);
   const [adminSearch, setAdminSearch] = useState("");
   const [adminCurrency, setAdminCurrency] = useState<"all" | "USD" | "IQD">("all");
+  const [adminAgeRange, setAdminAgeRange] = useState<"all" | AgeRangeOption>("all");
   const [adminPage, setAdminPage] = useState(1);
 
   const ADMIN_PAGE_SIZE = 5;
@@ -126,6 +131,7 @@ export default function Admin() {
       priceBulk: 0,
       bulkMinQty: 0,
       currency: "USD",
+      ageRange: undefined,
     },
   });
 
@@ -137,6 +143,7 @@ export default function Admin() {
       images: data.images && data.images.length > 0 ? data.images : undefined,
       imageUrl: undefined,
       bulkMinQty: data.bulkMinQty || undefined,
+      ageRange: data.ageRange || undefined,
     });
   };
 
@@ -168,6 +175,7 @@ export default function Admin() {
     const q = adminSearch.toLowerCase().trim();
     return products.filter((p) => {
       if (adminCurrency !== "all" && (p.currency ?? "USD") !== adminCurrency) return false;
+      if (adminAgeRange !== "all" && (p.ageRange ?? null) !== adminAgeRange) return false;
       if (!q) return true;
       return (
         p.name.toLowerCase().includes(q) ||
@@ -175,7 +183,7 @@ export default function Admin() {
         (p.description ?? "").toLowerCase().includes(q)
       );
     });
-  }, [products, adminSearch, adminCurrency]);
+  }, [products, adminSearch, adminCurrency, adminAgeRange]);
 
   const adminTotalPages = Math.ceil(filteredAdminProducts.length / ADMIN_PAGE_SIZE);
   const paginatedAdminProducts = filteredAdminProducts.slice(
@@ -417,6 +425,41 @@ export default function Admin() {
                       </FormItem>
                     )}
                   />
+                  <FormField
+                    control={form.control}
+                    name="ageRange"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t("form.ageRange")}</FormLabel>
+                        <FormControl>
+                          <div className="flex rounded-xl border-2 overflow-hidden">
+                            <button
+                              type="button"
+                              onClick={() => field.onChange(null)}
+                              className={`flex-1 py-2 text-xs font-bold transition-colors ${
+                                !field.value ? "bg-primary text-primary-foreground" : "bg-background text-muted-foreground hover:bg-muted"
+                              }`}
+                            >
+                              {t("form.ageRange.any")}
+                            </button>
+                            {AGE_RANGES.map((range) => (
+                              <button
+                                key={range}
+                                type="button"
+                                onClick={() => field.onChange(range)}
+                                className={`flex-1 py-2 text-xs font-bold transition-colors border-l-2 ${
+                                  field.value === range ? "bg-primary text-primary-foreground" : "bg-background text-muted-foreground hover:bg-muted"
+                                }`}
+                              >
+                                {t(`form.ageRange.${range}`)}
+                              </button>
+                            ))}
+                          </div>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                   <Button type="submit" className="w-full rounded-xl font-bold mt-2" data-testid="btn-submit-add">
                     {t("form.submit")}
                   </Button>
@@ -428,8 +471,8 @@ export default function Admin() {
 
         <div className="space-y-4">
           {/* Search + filter bar */}
-          <div className="flex gap-2 items-center">
-            <div className="relative flex-1">
+          <div className="flex flex-wrap gap-2 items-center">
+            <div className="relative flex-1 min-w-40">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
               <Input
                 className="rounded-xl border-2 pl-9 pr-9"
@@ -458,6 +501,21 @@ export default function Admin() {
                   }`}
                 >
                   {c === "all" ? t("catalog.allCurrencies") : c}
+                </button>
+              ))}
+            </div>
+            <div className="flex rounded-xl border-2 overflow-hidden shrink-0">
+              {(["all", ...AGE_RANGES] as const).map((r) => (
+                <button
+                  key={r}
+                  onClick={() => { setAdminAgeRange(r); setAdminPage(1); }}
+                  className={`px-3 py-2 text-xs font-bold transition-colors border-l-2 first:border-l-0 ${
+                    adminAgeRange === r
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-background text-muted-foreground hover:bg-muted"
+                  }`}
+                >
+                  {r === "all" ? t("form.ageRange.any") : t(`form.ageRange.${r}`)}
                 </button>
               ))}
             </div>
@@ -533,6 +591,11 @@ export default function Admin() {
                   }`}>
                     {(product.currency ?? "USD") === "IQD" ? "IQD" : "$ USD"}
                   </span>
+                  {product.ageRange && (
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-800">
+                      👶 {t(`form.ageRange.${product.ageRange}`)}
+                    </span>
+                  )}
                 </div>
                 <p className="text-sm text-muted-foreground line-clamp-2 mb-2">{product.description}</p>
                 

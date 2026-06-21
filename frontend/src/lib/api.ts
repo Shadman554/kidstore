@@ -35,6 +35,7 @@ function mapProduct(p: Record<string, unknown>): Product {
     priceBulk: Number(p.priceBulk ?? p.price_bulk ?? 0),
     bulkMinQty: (p.bulkMinQty ?? p.bulk_min_qty ?? undefined) as number | undefined,
     currency: ((p.currency as string) ?? "USD") as "USD" | "IQD",
+    ageRange: (p.ageRange ?? p.age_range ?? undefined) as "0-3" | "3-5" | "5+" | undefined,
     createdAt:
       typeof p.createdAt === "string"
         ? p.createdAt
