@@ -102,3 +102,11 @@ export async function updateWhatsAppEnabled(enabled: boolean): Promise<AppSettin
     body: JSON.stringify({ whatsappEnabled: enabled }),
   });
 }
+
+export async function changeAdminPin(currentPin: string, newPin: string): Promise<void> {
+  await apiFetch<{ success: boolean }>("/admin/change-pin", {
+    method: "POST",
+    headers: adminHeaders(),
+    body: JSON.stringify({ currentPin, newPin }),
+  });
+}
