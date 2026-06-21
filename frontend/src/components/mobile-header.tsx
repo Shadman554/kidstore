@@ -11,26 +11,25 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import WawLogo from "@assets/WAW_logo_1781717964078.svg";
+import FlagEN from "@assets/image_1782038673428.png";
+import FlagAR from "@assets/image_1782038640101.png";
+import FlagKU from "@assets/image_1782038656177.png";
 import { useSecretTap } from "@/hooks/use-secret-tap";
 import { useSiteSettings } from "@/lib/use-site-settings";
 
-function KurdistanFlag({ size }: { size: number }) {
-  const w = Math.round(size * 1.5);
-  return (
-    <svg width={w} height={size} viewBox="0 0 30 20" xmlns="http://www.w3.org/2000/svg" style={{ borderRadius: 2, display: "inline-block", verticalAlign: "middle" }}>
-      <rect width="30" height="6.67" fill="#CE1126"/>
-      <rect y="6.67" width="30" height="6.67" fill="#FFFFFF"/>
-      <rect y="13.33" width="30" height="6.67" fill="#007A3D"/>
-      <circle cx="15" cy="10" r="3.8" fill="#F5D000"/>
-      <circle cx="15" cy="10" r="2.2" fill="#007A3D"/>
-    </svg>
-  );
-}
+const FLAG_SRC: Record<Language, string> = { EN: FlagEN, AR: FlagAR, KU: FlagKU };
 
 function FlagIcon({ lang, size = 20 }: { lang: Language; size?: number }) {
-  if (lang === "EN") return <span style={{ fontSize: size * 0.85, lineHeight: 1 }}>🇺🇸</span>;
-  if (lang === "AR") return <span style={{ fontSize: size * 0.85, lineHeight: 1 }}>🇮🇶</span>;
-  return <KurdistanFlag size={size} />;
+  const w = Math.round(size * 1.5);
+  return (
+    <img
+      src={FLAG_SRC[lang]}
+      alt={lang}
+      width={w}
+      height={size}
+      style={{ borderRadius: 3, objectFit: "cover", display: "inline-block", verticalAlign: "middle" }}
+    />
+  );
 }
 
 export function MobileHeader() {
