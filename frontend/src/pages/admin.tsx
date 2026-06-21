@@ -3,9 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { fetchProducts, createProduct, deleteProduct, fetchSettings, updateWhatsAppNumber, changeAdminPin, fetchLoginLogs } from "@/lib/api";
-import type { LoginLog } from "@/lib/api";
-import { clearAdminSession } from "@/lib/admin-auth";
+import { fetchProducts, createProduct, deleteProduct, fetchSettings, updateWhatsAppNumber } from "@/lib/api";
 import { useInactivityLogout } from "@/hooks/use-inactivity-logout";
 import { formatPrice, getFirstImage, Product } from "@/lib/store";
 
@@ -27,7 +25,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Package, Trash2, Edit2, DollarSign, TrendingDown, Phone, Check, Settings2, Search, ChevronLeft, ChevronRight, X, KeyRound, Eye, EyeOff, LogOut } from "lucide-react";
+import { Package, Trash2, Edit2, DollarSign, TrendingDown, Phone, Check, Settings2, Search, ChevronLeft, ChevronRight, X } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -81,75 +79,12 @@ export default function Admin() {
   }, [settings?.whatsappNumber]);
   const [showSettings, setShowSettings] = useState(false);
 
-  const [pinCurrentVal, setPinCurrentVal] = useState("");
-  const [pinNewVal, setPinNewVal] = useState("");
-  const [pinConfirmVal, setPinConfirmVal] = useState("");
-  const [showCurrentPin, setShowCurrentPin] = useState(false);
-  const [showNewPin, setShowNewPin] = useState(false);
-  const [showConfirmPin, setShowConfirmPin] = useState(false);
-  const [pinLoading, setPinLoading] = useState(false);
-  const [pinError, setPinError] = useState("");
-  const [pinSuccess, setPinSuccess] = useState(false);
-  const [showLoginLogs, setShowLoginLogs] = useState(false);
-
   const handleInactivityLogout = useCallback(() => {
     toast({ title: t("admin.inactivityLogout"), variant: "destructive" });
     setTimeout(() => window.location.reload(), 1200);
   }, [toast, t]);
 
   useInactivityLogout(handleInactivityLogout);
-
-  const { data: loginLogs = [], refetch: refetchLogs } = useQuery<LoginLog[]>({
-    queryKey: ["loginLogs"],
-    queryFn: fetchLoginLogs,
-    enabled: showLoginLogs,
-  });
-
-  function getPinStrength(pin: string): { level: 0 | 1 | 2 | 3; label: string; color: string } {
-    if (pin.length < 6) return { level: 0, label: "", color: "" };
-    const hasLetter = /[a-zA-Z]/.test(pin);
-    const hasNumber = /[0-9]/.test(pin);
-    const hasSpecial = /[^a-zA-Z0-9]/.test(pin);
-    const longEnough = pin.length >= 10;
-    const score = (hasLetter ? 1 : 0) + (hasNumber ? 1 : 0) + (hasSpecial ? 1 : 0) + (longEnough ? 1 : 0);
-    if (score <= 1) return { level: 1, label: t("admin.pinStrength.weak"), color: "bg-red-400" };
-    if (score <= 2) return { level: 2, label: t("admin.pinStrength.fair"), color: "bg-yellow-400" };
-    return { level: 3, label: t("admin.pinStrength.strong"), color: "bg-green-500" };
-  }
-
-  const pinStrength = getPinStrength(pinNewVal);
-
-  const handleChangePin = async () => {
-    setPinError("");
-    if (pinNewVal.length < 6) {
-      setPinError(t("admin.pinTooShort"));
-      return;
-    }
-    if (!/[a-zA-Z]/.test(pinNewVal) || !/[0-9]/.test(pinNewVal)) {
-      setPinError(t("admin.pinComplexity"));
-      return;
-    }
-    if (pinNewVal !== pinConfirmVal) {
-      setPinError(t("admin.pinMismatch"));
-      return;
-    }
-    setPinLoading(true);
-    try {
-      await changeAdminPin(pinCurrentVal, pinNewVal);
-      setPinSuccess(true);
-      setPinCurrentVal("");
-      setPinNewVal("");
-      setPinConfirmVal("");
-      toast({ title: t("admin.pinChanged"), variant: "default" });
-      setTimeout(() => {
-        clearAdminSession();
-        window.location.reload();
-      }, 1800);
-    } catch (err: unknown) {
-      setPinError(err instanceof Error ? err.message : "Error");
-    }
-    setPinLoading(false);
-  };
 
   const [adminSearch, setAdminSearch] = useState("");
   const [adminCurrency, setAdminCurrency] = useState<"all" | "USD" | "IQD">("all");
@@ -364,198 +299,6 @@ export default function Admin() {
         </Card>
       )}
 
-      {/* Security / Change PIN */}
-      <Card className="rounded-3xl border-2 shadow-sm mb-8">
-        <CardContent className="p-6">
-          <div className="flex items-center justify-between gap-3 mb-5">
-            <div className="flex items-center gap-3">
-              <div className="p-3 bg-primary/10 rounded-2xl">
-                <KeyRound className="w-6 h-6 text-primary" />
-              </div>
-              <div>
-                <div className="font-bold text-base">{t("admin.security")}</div>
-                <div className="text-xs text-muted-foreground">{t("admin.changePin")}</div>
-              </div>
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              className="rounded-xl text-xs gap-1.5"
-              onClick={() => { setShowLoginLogs((v) => !v); if (!showLoginLogs) refetchLogs(); }}
-            >
-              <LogOut className="w-3.5 h-3.5" />
-              {t("admin.loginLogs")}
-            </Button>
-          </div>
-
-          <div className="grid sm:grid-cols-3 gap-3 mb-3">
-            {/* Current PIN */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-muted-foreground uppercase tracking-wide">
-                {t("admin.currentPin")}
-              </label>
-              <div className="relative">
-                <Input
-                  type={showCurrentPin ? "text" : "password"}
-                  className="rounded-xl border-2 pr-10 font-mono tracking-widest"
-                  placeholder="••••"
-                  value={pinCurrentVal}
-                  onChange={(e) => { setPinCurrentVal(e.target.value); setPinError(""); setPinSuccess(false); }}
-                  disabled={pinLoading || pinSuccess}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowCurrentPin((v) => !v)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                  tabIndex={-1}
-                >
-                  {showCurrentPin ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
-              </div>
-            </div>
-
-            {/* New PIN */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-muted-foreground uppercase tracking-wide">
-                {t("admin.newPin")}
-              </label>
-              <div className="relative">
-                <Input
-                  type={showNewPin ? "text" : "password"}
-                  className="rounded-xl border-2 pr-10 font-mono tracking-widest"
-                  placeholder="••••"
-                  value={pinNewVal}
-                  onChange={(e) => { setPinNewVal(e.target.value); setPinError(""); setPinSuccess(false); }}
-                  disabled={pinLoading || pinSuccess}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowNewPin((v) => !v)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                  tabIndex={-1}
-                >
-                  {showNewPin ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
-              </div>
-            </div>
-
-            {/* Confirm PIN */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-muted-foreground uppercase tracking-wide">
-                {t("admin.confirmPin")}
-              </label>
-              <div className="relative">
-                <Input
-                  type={showConfirmPin ? "text" : "password"}
-                  className="rounded-xl border-2 pr-10 font-mono tracking-widest"
-                  placeholder="••••"
-                  value={pinConfirmVal}
-                  onChange={(e) => { setPinConfirmVal(e.target.value); setPinError(""); setPinSuccess(false); }}
-                  disabled={pinLoading || pinSuccess}
-                  onKeyDown={(e) => e.key === "Enter" && !pinLoading && handleChangePin()}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowConfirmPin((v) => !v)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                  tabIndex={-1}
-                >
-                  {showConfirmPin ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Password strength meter */}
-          {pinNewVal.length > 0 && (
-            <div className="mb-3">
-              <div className="flex gap-1 mb-1">
-                {[1, 2, 3].map((level) => (
-                  <div
-                    key={level}
-                    className={`h-1.5 flex-1 rounded-full transition-colors duration-300 ${
-                      pinStrength.level >= level ? pinStrength.color : "bg-muted"
-                    }`}
-                  />
-                ))}
-              </div>
-              {pinStrength.label && (
-                <p className={`text-xs font-semibold ${
-                  pinStrength.level === 1 ? "text-red-500" :
-                  pinStrength.level === 2 ? "text-yellow-600" : "text-green-600"
-                }`}>{pinStrength.label}</p>
-              )}
-            </div>
-          )}
-
-          {pinError && (
-            <p className="text-red-500 text-sm font-semibold mb-3">{pinError}</p>
-          )}
-          {pinSuccess && (
-            <p className="text-green-600 text-sm font-semibold mb-3 flex items-center gap-1.5">
-              <Check className="w-4 h-4" /> {t("admin.pinChanged")}
-            </p>
-          )}
-
-          <div className="flex items-center gap-3 mb-5">
-            <Button
-              onClick={handleChangePin}
-              disabled={!pinCurrentVal || !pinNewVal || !pinConfirmVal || pinLoading || pinSuccess}
-              className="rounded-xl font-bold px-5"
-            >
-              {pinLoading ? (
-                <span className="flex items-center gap-2">
-                  <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  {t("admin.pinSave")}
-                </span>
-              ) : pinSuccess ? (
-                <span className="flex items-center gap-2">
-                  <LogOut className="w-4 h-4" />
-                  {t("admin.pinChanged")}
-                </span>
-              ) : (
-                t("admin.pinSave")
-              )}
-            </Button>
-          </div>
-
-          {/* Login activity log */}
-          {showLoginLogs && (
-            <div className="border-t pt-4">
-              <p className="text-xs font-bold text-muted-foreground uppercase tracking-wide mb-3">
-                {t("admin.loginLogs")}
-              </p>
-              {loginLogs.length === 0 ? (
-                <p className="text-sm text-muted-foreground">{t("admin.loginLogs.empty")}</p>
-              ) : (
-                <div className="space-y-2">
-                  {loginLogs.map((log) => (
-                    <div
-                      key={log.id}
-                      className={`flex items-center justify-between rounded-xl px-3 py-2 text-sm ${
-                        log.success
-                          ? "bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800"
-                          : "bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800"
-                      }`}
-                    >
-                      <div className="flex items-center gap-2">
-                        <span className={`w-2 h-2 rounded-full shrink-0 ${log.success ? "bg-green-500" : "bg-red-500"}`} />
-                        <span className={`font-semibold ${log.success ? "text-green-700 dark:text-green-400" : "text-red-700 dark:text-red-400"}`}>
-                          {log.success ? t("admin.loginLogs.success") : t("admin.loginLogs.failed")}
-                        </span>
-                        {log.ip && <span className="text-muted-foreground font-mono text-xs">· {log.ip}</span>}
-                      </div>
-                      <span className="text-muted-foreground text-xs shrink-0">
-                        {new Date(log.timestamp).toLocaleString()}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-        </CardContent>
-      </Card>
 
       <div className="grid lg:grid-cols-[1fr_2fr] gap-8">
         <div>

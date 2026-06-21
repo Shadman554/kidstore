@@ -6,12 +6,18 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useSiteSettings } from "@/lib/use-site-settings";
 import { FONT_PRESETS, FontPreset } from "@/lib/site-settings";
 import { useI18n } from "@/lib/i18n";
 import { getDefaultTranslation, Language } from "@/lib/i18n-core";
-import { RotateCcw } from "lucide-react";
+import { RotateCcw, Eye, EyeOff, Check, LogOut } from "lucide-react";
+import { changeAdminPin, fetchLoginLogs } from "@/lib/api";
+import type { LoginLog } from "@/lib/api";
+import { clearAdminSession } from "@/lib/admin-auth";
+import { useQuery } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
 
 interface Props {
   open: boolean;
@@ -51,6 +57,257 @@ const TEXT_SECTIONS = [
 
 const COLOR_LABELS = ["Color 1 (Yellow)", "Color 2 (Blue)", "Color 3 (Pink)"];
 const COLOR_KEYS = ["color1", "color2", "color3"] as const;
+
+function SecurityTab() {
+  const { t } = useI18n();
+  const { toast } = useToast();
+
+  const [pinCurrentVal, setPinCurrentVal] = useState("");
+  const [pinNewVal, setPinNewVal] = useState("");
+  const [pinConfirmVal, setPinConfirmVal] = useState("");
+  const [showCurrentPin, setShowCurrentPin] = useState(false);
+  const [showNewPin, setShowNewPin] = useState(false);
+  const [showConfirmPin, setShowConfirmPin] = useState(false);
+  const [pinLoading, setPinLoading] = useState(false);
+  const [pinError, setPinError] = useState("");
+  const [pinSuccess, setPinSuccess] = useState(false);
+  const [showLoginLogs, setShowLoginLogs] = useState(false);
+
+  const { data: loginLogs = [], refetch: refetchLogs } = useQuery<LoginLog[]>({
+    queryKey: ["loginLogs"],
+    queryFn: fetchLoginLogs,
+    enabled: showLoginLogs,
+  });
+
+  function getPinStrength(pin: string): { level: 0 | 1 | 2 | 3; label: string; color: string } {
+    if (pin.length < 6) return { level: 0, label: "", color: "" };
+    const hasLetter = /[a-zA-Z]/.test(pin);
+    const hasNumber = /[0-9]/.test(pin);
+    const hasSpecial = /[^a-zA-Z0-9]/.test(pin);
+    const longEnough = pin.length >= 10;
+    const score = (hasLetter ? 1 : 0) + (hasNumber ? 1 : 0) + (hasSpecial ? 1 : 0) + (longEnough ? 1 : 0);
+    if (score <= 1) return { level: 1, label: t("admin.pinStrength.weak"), color: "bg-red-400" };
+    if (score <= 2) return { level: 2, label: t("admin.pinStrength.fair"), color: "bg-yellow-400" };
+    return { level: 3, label: t("admin.pinStrength.strong"), color: "bg-green-500" };
+  }
+
+  const pinStrength = getPinStrength(pinNewVal);
+
+  const handleChangePin = async () => {
+    setPinError("");
+    if (pinNewVal.length < 6) {
+      setPinError(t("admin.pinTooShort"));
+      return;
+    }
+    if (!/[a-zA-Z]/.test(pinNewVal) || !/[0-9]/.test(pinNewVal)) {
+      setPinError(t("admin.pinComplexity"));
+      return;
+    }
+    if (pinNewVal !== pinConfirmVal) {
+      setPinError(t("admin.pinMismatch"));
+      return;
+    }
+    setPinLoading(true);
+    try {
+      await changeAdminPin(pinCurrentVal, pinNewVal);
+      setPinSuccess(true);
+      setPinCurrentVal("");
+      setPinNewVal("");
+      setPinConfirmVal("");
+      toast({ title: t("admin.pinChanged"), variant: "default" });
+      setTimeout(() => {
+        clearAdminSession();
+        window.location.reload();
+      }, 1800);
+    } catch (err: unknown) {
+      setPinError(err instanceof Error ? err.message : "Error");
+    }
+    setPinLoading(false);
+  };
+
+  return (
+    <div className="space-y-5">
+      {/* Change Password */}
+      <div>
+        <div className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-3">
+          {t("admin.changePin")}
+        </div>
+        <div className="space-y-3">
+          {/* Current PIN */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-muted-foreground uppercase tracking-wide">
+              {t("admin.currentPin")}
+            </label>
+            <div className="relative">
+              <Input
+                type={showCurrentPin ? "text" : "password"}
+                className="rounded-xl border-2 pr-10 font-mono tracking-widest"
+                placeholder="••••"
+                value={pinCurrentVal}
+                onChange={(e) => { setPinCurrentVal(e.target.value); setPinError(""); setPinSuccess(false); }}
+                disabled={pinLoading || pinSuccess}
+              />
+              <button
+                type="button"
+                onClick={() => setShowCurrentPin((v) => !v)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                tabIndex={-1}
+              >
+                {showCurrentPin ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+            </div>
+          </div>
+
+          {/* New PIN */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-muted-foreground uppercase tracking-wide">
+              {t("admin.newPin")}
+            </label>
+            <div className="relative">
+              <Input
+                type={showNewPin ? "text" : "password"}
+                className="rounded-xl border-2 pr-10 font-mono tracking-widest"
+                placeholder="••••"
+                value={pinNewVal}
+                onChange={(e) => { setPinNewVal(e.target.value); setPinError(""); setPinSuccess(false); }}
+                disabled={pinLoading || pinSuccess}
+              />
+              <button
+                type="button"
+                onClick={() => setShowNewPin((v) => !v)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                tabIndex={-1}
+              >
+                {showNewPin ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+            </div>
+          </div>
+
+          {/* Confirm PIN */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-muted-foreground uppercase tracking-wide">
+              {t("admin.confirmPin")}
+            </label>
+            <div className="relative">
+              <Input
+                type={showConfirmPin ? "text" : "password"}
+                className="rounded-xl border-2 pr-10 font-mono tracking-widest"
+                placeholder="••••"
+                value={pinConfirmVal}
+                onChange={(e) => { setPinConfirmVal(e.target.value); setPinError(""); setPinSuccess(false); }}
+                disabled={pinLoading || pinSuccess}
+                onKeyDown={(e) => e.key === "Enter" && !pinLoading && handleChangePin()}
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPin((v) => !v)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                tabIndex={-1}
+              >
+                {showConfirmPin ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+            </div>
+          </div>
+
+          {/* Password strength meter */}
+          {pinNewVal.length > 0 && (
+            <div>
+              <div className="flex gap-1 mb-1">
+                {[1, 2, 3].map((level) => (
+                  <div
+                    key={level}
+                    className={`h-1.5 flex-1 rounded-full transition-colors duration-300 ${
+                      pinStrength.level >= level ? pinStrength.color : "bg-muted"
+                    }`}
+                  />
+                ))}
+              </div>
+              {pinStrength.label && (
+                <p className={`text-xs font-semibold ${
+                  pinStrength.level === 1 ? "text-red-500" :
+                  pinStrength.level === 2 ? "text-yellow-600" : "text-green-600"
+                }`}>{pinStrength.label}</p>
+              )}
+            </div>
+          )}
+
+          {pinError && (
+            <p className="text-red-500 text-sm font-semibold">{pinError}</p>
+          )}
+          {pinSuccess && (
+            <p className="text-green-600 text-sm font-semibold flex items-center gap-1.5">
+              <Check className="w-4 h-4" /> {t("admin.pinChanged")}
+            </p>
+          )}
+
+          <Button
+            onClick={handleChangePin}
+            disabled={!pinCurrentVal || !pinNewVal || !pinConfirmVal || pinLoading || pinSuccess}
+            className="rounded-xl font-bold px-5 w-full"
+          >
+            {pinLoading ? (
+              <span className="flex items-center gap-2">
+                <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                {t("admin.pinSave")}
+              </span>
+            ) : pinSuccess ? (
+              <span className="flex items-center gap-2">
+                <LogOut className="w-4 h-4" />
+                {t("admin.pinChanged")}
+              </span>
+            ) : (
+              t("admin.pinSave")
+            )}
+          </Button>
+        </div>
+      </div>
+
+      {/* Login Activity */}
+      <div>
+        <div className="flex items-center justify-between mb-3">
+          <div className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
+            {t("admin.loginLogs")}
+          </div>
+          <button
+            onClick={() => { setShowLoginLogs((v) => !v); if (!showLoginLogs) refetchLogs(); }}
+            className="text-xs text-muted-foreground hover:text-foreground font-semibold transition-colors"
+          >
+            {showLoginLogs ? "Hide" : "Show"}
+          </button>
+        </div>
+        {showLoginLogs && (
+          loginLogs.length === 0 ? (
+            <p className="text-sm text-muted-foreground">{t("admin.loginLogs.empty")}</p>
+          ) : (
+            <div className="space-y-2">
+              {loginLogs.map((log) => (
+                <div
+                  key={log.id}
+                  className={`flex items-center justify-between rounded-xl px-3 py-2 text-sm ${
+                    log.success
+                      ? "bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800"
+                      : "bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800"
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <span className={`w-2 h-2 rounded-full shrink-0 ${log.success ? "bg-green-500" : "bg-red-500"}`} />
+                    <span className={`font-semibold ${log.success ? "text-green-700 dark:text-green-400" : "text-red-700 dark:text-red-400"}`}>
+                      {log.success ? t("admin.loginLogs.success") : t("admin.loginLogs.failed")}
+                    </span>
+                    {log.ip && <span className="text-muted-foreground font-mono text-xs">· {log.ip}</span>}
+                  </div>
+                  <span className="text-muted-foreground text-xs shrink-0">
+                    {new Date(log.timestamp).toLocaleString()}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )
+        )}
+      </div>
+    </div>
+  );
+}
 
 export function SiteSettingsModal({ open, onClose }: Props) {
   const { settings, update } = useSiteSettings();
@@ -93,6 +350,7 @@ export function SiteSettingsModal({ open, onClose }: Props) {
           <TabsList className="rounded-2xl mb-4 shrink-0">
             <TabsTrigger value="appearance" className="rounded-xl text-sm font-bold">Appearance</TabsTrigger>
             <TabsTrigger value="text" className="rounded-xl text-sm font-bold">Text</TabsTrigger>
+            <TabsTrigger value="security" className="rounded-xl text-sm font-bold">Security</TabsTrigger>
           </TabsList>
 
           {/* ── APPEARANCE TAB ── */}
@@ -211,6 +469,11 @@ export function SiteSettingsModal({ open, onClose }: Props) {
                 </div>
               </div>
             ))}
+          </TabsContent>
+
+          {/* ── SECURITY TAB ── */}
+          <TabsContent value="security" className="overflow-y-auto flex-1 pr-1">
+            <SecurityTab />
           </TabsContent>
         </Tabs>
       </DialogContent>
