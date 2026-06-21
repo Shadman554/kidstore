@@ -5,12 +5,17 @@ const REQUIRED_TAPS = 5;
 const RESET_MS = 2000;
 
 export function useSecretTap() {
-  const [, navigate] = useLocation();
+  const [location, navigate] = useLocation();
   const tapsRef = useRef(0);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handleTap = useCallback(
     (e: React.MouseEvent) => {
+      if (location.startsWith("/admin")) {
+        navigate("/");
+        return;
+      }
+
       e.preventDefault();
       tapsRef.current += 1;
 
@@ -25,7 +30,7 @@ export function useSecretTap() {
         navigate("/admin");
       }
     },
-    [navigate],
+    [location, navigate],
   );
 
   return handleTap;
